@@ -47,7 +47,7 @@ const CartPage = () => {
     if (error) return <div style={{ textAlign: 'center', padding: '5rem', color: 'red' }}>{error}</div>;
 
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto', marginTop: '140px', padding: '2rem' }}>
             <h1 style={{ fontSize: '2rem', marginBottom: '2rem' }}>장바구니</h1>
 
             {cart && cart.items && cart.items.length > 0 ? (

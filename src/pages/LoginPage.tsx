@@ -14,7 +14,9 @@ const LoginPage = () => {
             if (response.resultCode.startsWith('S-200') || response.resultCode.startsWith('200')) {
                 localStorage.setItem('accessToken', response.data.accessToken);
                 localStorage.setItem('refreshToken', response.data.refreshToken);
-                alert('로그인 성공!');
+                if (response.data.nickname) {
+                    localStorage.setItem('nickname', response.data.nickname);
+                }
                 navigate('/');
             } else {
                 setError('로그인 실패: ' + response.msg);
@@ -26,7 +28,7 @@ const LoginPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '400px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '400px', margin: '4rem auto', marginTop: '140px' }}>
             <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>로그인</h1>
 
             <div className="card">
@@ -55,7 +57,7 @@ const LoginPage = () => {
 
                     {error && <div style={{ color: 'var(--danger-color)', fontSize: '0.9rem' }}>{error}</div>}
 
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', borderRadius: '50px' }}>
                         로그인
                     </button>
                 </form>

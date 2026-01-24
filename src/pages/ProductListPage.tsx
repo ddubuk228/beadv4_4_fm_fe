@@ -26,7 +26,7 @@ const ProductListPage = () => {
     }
 
     return (
-        <div>
+        <div className="container" style={{ marginTop: '140px' }}>
             <h1 style={{ marginBottom: '2rem' }}>마켓</h1>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '2rem' }}>

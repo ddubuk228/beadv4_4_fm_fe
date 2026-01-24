@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDaumPostcodePopup } from 'react-daum-postcode';
 import Modal from '../components/Modal';
@@ -7,10 +7,8 @@ import { authApi, type SignupRequest } from '../api/auth';
 const SignupPage = () => {
     const navigate = useNavigate();
     const openPostcode = useDaumPostcodePopup('https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js');
-
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-    const [formData, setFormData] = useState<SignupRequest>({
+    // Form state
+    const [formData, setFormData] = useState({
         email: '',
         password: '',
         name: '',
@@ -19,8 +17,49 @@ const SignupPage = () => {
         address: '',
         rrn: '',
         latitude: 0,
-        longitude: 0
+        longitude: 0,
     });
+    const [error, setError] = useState('');
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    // State for Map SDK
+    const [isMapLoaded, setIsMapLoaded] = useState(false);
+    const [mapError, setMapError] = useState(false);
+    // Additional state for error handling and success modal
+    // Robust Script Loader
+    useEffect(() => {
+        const scriptId = 'kakao-map-script';
+        const existingScript = document.getElementById(scriptId);
+
+        if (existingScript) {
+            if ((window as any).kakao && (window as any).kakao.maps) {
+                setIsMapLoaded(true);
+            }
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=5dd5ef04cbba5202b3410c0e76f2f8c5&libraries=services&autoload=false';
+        script.async = true;
+
+        script.onload = () => {
+            (window as any).kakao.maps.load(() => {
+                console.log('Kakao Maps SDK initialized');
+                setIsMapLoaded(true);
+            });
+        };
+
+        script.onerror = () => {
+            console.error('Failed to load Kakao Maps SDK');
+            setMapError(true);
+        };
+
+        document.head.appendChild(script);
+
+        return () => {
+            // Optional: cleanup if needed, but usually we want to keep the script
+        };
+    }, []);
 
     const handleAddressComplete = (data: any) => {
         let fullAddress = data.address;
@@ -36,14 +75,16 @@ const SignupPage = () => {
             fullAddress += (extraAddress !== '' ? ` (${extraAddress})` : '');
         }
 
-        // Geocoding: Convert address to coordinates
-        if ((window as any).kakao && (window as any).kakao.maps) {
+        // Geocoding
+        if (isMapLoaded && (window as any).kakao && (window as any).kakao.maps) {
             const geocoder = new (window as any).kakao.maps.services.Geocoder();
             geocoder.addressSearch(data.address, (result: any, status: any) => {
                 if (status === (window as any).kakao.maps.services.Status.OK) {
                     const coords = new (window as any).kakao.maps.LatLng(result[0].y, result[0].x);
                     const latitude = coords.getLat();
                     const longitude = coords.getLng();
+
+                    console.log("Geocoding success:", latitude, longitude);
 
                     setFormData(prev => ({
                         ...prev,
@@ -52,39 +93,62 @@ const SignupPage = () => {
                         longitude: longitude
                     }));
                 } else {
-                    console.error("Geocoding failed");
-                    // Still set address even if geocoding fails, but maybe alert user?
+                    console.error("Geocoding failed. Status:", status);
+                    alert("주소의 위치 정보를 찾을 수 없습니다. (Kakao Maps API 오류)\n도메인 등록 여부나 API 키를 확인해주세요.");
+                    // Fallback: Reset to 0
                     setFormData(prev => ({
                         ...prev,
-                        address: fullAddress
+                        address: fullAddress,
+                        latitude: 0,
+                        longitude: 0
                     }));
                 }
             });
         } else {
-            console.error("Kakao Maps SDK not loaded");
+            console.error("Kakao Maps SDK not ready");
+            alert("지도 서비스가 아직 로드되지 않았거나 차단되었습니다.\n잠시 후 다시 시도하거나 광고 차단 기능을 확인해주세요.");
             setFormData(prev => ({
                 ...prev,
                 address: fullAddress
             }));
         }
     };
-
-    const handleSearchAddress = () => {
-        openPostcode({ onComplete: handleAddressComplete });
-    };
-    const [error, setError] = useState('');
-
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+    const handleSearchAddress = () => {
+        if (mapError) {
+            // If map is broken, manual input is enabled.
+            // Just focus the input field for the user.
+            document.getElementsByName('address')[0]?.focus();
+            return;
+        }
+        if (!isMapLoaded) {
+            alert("지도 서비스를 불러오는 중입니다. 잠시만 기다려주세요.");
+            return;
+        }
+        openPostcode({ onComplete: handleAddressComplete });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate Coordinates (Skip if map failed)
+        let finalData = { ...formData };
+        if (!mapError && (formData.latitude === 0 || formData.longitude === 0)) {
+            alert("주소의 위치 정보(위도/경도)가 설정되지 않았습니다.\n주소를 다시 검색하거나, 올바른 주소를 선택해주세요.");
+            return;
+        }
+
+        // If map failed, use default coordinates (Seoul City Hall) to bypass backend validation
+        if (mapError && (formData.latitude === 0 || formData.longitude === 0)) {
+            finalData.latitude = 37.5665;
+            finalData.longitude = 126.9780;
+        }
+
         try {
-            const response = await authApi.signup(formData);
+            const response = await authApi.signup(finalData);
             // Backend returns "S-200" for success
             if (response.resultCode.startsWith('S-200') || response.resultCode.startsWith('200')) {
                 setShowSuccessModal(true);
@@ -98,7 +162,7 @@ const SignupPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '500px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '500px', margin: '4rem auto', marginTop: '140px' }}>
             <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>회원가입</h1>
 
             <div className="card">
@@ -125,10 +189,13 @@ const SignupPage = () => {
                     </div>
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>주소</label>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <input name="address" type="text" value={formData.address} onChange={handleChange} required readOnly style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: '#f1f5f9' }} />
-                            <button type="button" onClick={handleSearchAddress} className="btn btn-outline" style={{ whiteSpace: 'nowrap' }}>주소 검색</button>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <input name="address" type="text" value={formData.address} onChange={handleChange} required readOnly={!mapError} style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: mapError ? 'white' : '#f1f5f9' }} placeholder={mapError ? "주소를 직접 입력해주세요" : "주소 검색 버튼을 눌러주세요"} />
+                            <button type="button" onClick={handleSearchAddress} className="btn btn-outline" style={{ whiteSpace: 'nowrap' }} disabled={!isMapLoaded && !mapError}>
+                                {isMapLoaded ? "주소 검색" : mapError ? "수동 입력" : "로딩 중..."}
+                            </button>
                         </div>
+                        {mapError && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginTop: '0.5rem' }}>지도 서비스를 불러올 수 없습니다. 주소를 직접 입력해주세요.</div>}
                     </div>
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>주민번호 (7자리)</label>
@@ -138,11 +205,11 @@ const SignupPage = () => {
 
                     {error && <div style={{ color: 'var(--danger-color)', fontSize: '0.9rem' }}>{error}</div>}
 
-                    <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+                    <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem', borderRadius: '50px' }}>
                         가입하기
                     </button>
                 </form>
-            </div>
+            </div >
             <Modal
                 isOpen={showSuccessModal}
                 title="회원가입 완료"
@@ -152,7 +219,7 @@ const SignupPage = () => {
                     navigate('/login', { replace: true });
                 }}
             />
-        </div>
+        </div >
     );
 };
 

@@ -1,49 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
 :root {
-  /* Mossy Theme Palette */
-  --primary-color: #3f6212;
-  /* Moss Green (Lime 800) */
-  --primary-hover: #365314;
-  /* Darker Moss (Lime 900) */
-  --secondary-color: #84cc16;
-  /* Vibrant Sprout (Lime 500) */
-  --background-color: #f7fee7;
-  /* Very light green tinge (Lime 50) */
+  /* Premium Earthy Palette */
+  --primary-color: #354f41;
+  /* Deep Hunter Green */
+  --primary-hover: #263c30;
+  /* Darker Forest */
+
+  --secondary-color: #8da399;
+  /* Sage/Muted Green */
+  --accent-color: #c5a065;
+  /* Subtle Gold/Earth for highlights */
+
+  --background-color: #f9f8f4;
+  /* Warm Cream/Rice Paper */
   --surface-color: #ffffff;
-  --text-main: #1a2e05;
-  /* Dark Forest Green */
-  --text-muted: #576d46;
-  /* Sage Green */
-  --border-color: #d9f99d;
-  /* Pale Moss (Lime 200) */
 
-  --success-color: #15803d;
-  /* Green 700 */
-  --danger-color: #b91c1c;
-  /* Red 700 */
-  --warning-color: #a16207;
-  /* Yellow 700 */
+  --text-main: #1c1c1c;
+  /* Soft Black */
+  --text-muted: #5e6458;
+  /* Olive Grey */
 
-  /* Shadows - Organic/Soft */
-  --shadow-sm: 0 1px 3px 0 rgb(63 98 18 / 0.1), 0 1px 2px -1px rgb(63 98 18 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(63 98 18 / 0.1), 0 2px 4px -2px rgb(63 98 18 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(63 98 18 / 0.1), 0 4px 6px -4px rgb(63 98 18 / 0.1);
+  --border-color: #e5e2da;
+  /* Warm grey/beige */
+
+  --success-color: #407254;
+  --danger-color: #b93c3c;
+  --warning-color: #d99a46;
+
+  /* Shadows - Soft & Diffused */
+  --shadow-sm: 0 2px 8px -2px rgba(53, 79, 65, 0.08);
+  --shadow-md: 0 4px 16px -4px rgba(53, 79, 65, 0.12);
+  --shadow-lg: 0 12px 32px -8px rgba(53, 79, 65, 0.15);
 
   /* Spacing & Radius */
   --radius-sm: 0.5rem;
-  /* Softer corners */
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --radius-md: 1rem;
+  /* More rounded for premium feel */
+  --radius-lg: 1.5rem;
+  /* Large soft curves */
+  --radius-full: 9999px;
+  /* Pill shapes */
 }
 
 body {
   margin: 0;
-  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+  /* Clean sans-serif for body */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--background-color);
   color: var(--text-main);
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 * {
@@ -53,7 +61,7 @@ body {
 a {
   color: inherit;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color 0.2s ease;
 }
 
 button {
@@ -68,9 +76,12 @@ h4,
 h5,
 h6 {
   margin: 0;
-  font-weight: 700;
+  font-family: 'Playfair Display', 'Noto Sans KR', sans-serif;
+  /* Serif for English, Sans for Korean */
+  font-weight: 600;
   color: var(--primary-color);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
 /* Utilities */
@@ -84,10 +95,14 @@ h6 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.875rem 2rem;
+  /* Larger touch target */
+  border-radius: var(--radius-full);
+  /* Pill shape */
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   border: 1px solid transparent;
 }
 
@@ -98,36 +113,38 @@ h6 {
 .btn-primary {
   background-color: var(--primary-color);
   color: white;
-  box-shadow: 0 4px 6px -1px rgb(63 98 18 / 0.2);
+  box-shadow: 0 4px 12px rgba(53, 79, 65, 0.25);
 }
 
 .btn-primary:hover {
   background-color: var(--primary-hover);
-  box-shadow: 0 6px 8px -1px rgb(63 98 18 / 0.3);
+  box-shadow: 0 6px 16px rgba(53, 79, 65, 0.35);
+  transform: translateY(-1px);
 }
 
 .btn-outline {
-  background-color: white;
-  border-color: var(--border-color);
+  background-color: transparent;
+  border-color: var(--primary-color);
   color: var(--primary-color);
 }
 
 .btn-outline:hover {
   background-color: var(--primary-color);
   color: white;
-  border-color: var(--primary-color);
 }
 
 .card {
   background-color: var(--surface-color);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: 2rem;
+  box-shadow: var(--shadow-sm);
+  padding: 2.5rem;
   border: 1px solid var(--border-color);
-  transition: transform 0.2s, box-shadow 0.2s;
+  /* Very subtle border */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  /* transform: translateY(-4px); -- Removed per user request */
+  /* box-shadow: var(--shadow-md); -- Removed or made subtle if needed, but user wants less movement */
+  border-color: #dcd9d0;
 }

@@ -26,7 +26,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, title, message, onConfirm, confir
         }}>
             <div className="card" style={{ minWidth: '300px', maxWidth: '400px', textAlign: 'center', animation: 'fadeIn 0.2s ease-out' }}>
                 <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>{title}</h2>
-                <p style={{ marginBottom: '1.5rem', color: 'var(--text-muted)' }}>{message}</p>
+                <p style={{ marginBottom: '1.5rem', color: 'var(--text-muted)', whiteSpace: 'pre-line' }}>{message}</p>
                 <button className="btn btn-primary" onClick={onConfirm} style={{ width: '100%' }}>
                     {confirmText}
                 </button>

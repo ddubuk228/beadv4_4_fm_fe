@@ -10,6 +10,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 
 // Placeholder components for routes not yet fully implemented
 import SignupPage from './pages/SignupPage';
+import SellerRequestPage from './pages/SellerRequestPage';
 // const SignupPage = () => <div className="card"><h1>회원가입</h1><p>회원가입 페이지입니다.</p></div>;
 import CartPage from './pages/CartPage';
 // const CartPage = () => <div className="card"><h1>장바구니</h1><p>장바구니가 비어있습니다.</p></div>;
@@ -29,6 +30,7 @@ function App() {
         <Route path="cart" element={<CartPage />} />
         <Route path="mypage" element={<MyPage />} />
         <Route path="wallet" element={<WalletPage />} />
+        <Route path="seller-request" element={<SellerRequestPage />} />
       </Route>
     </Routes>
   );

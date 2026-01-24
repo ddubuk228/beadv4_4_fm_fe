@@ -8,6 +8,7 @@ export interface LoginRequest {
 export interface LoginResponse {
     accessToken: string;
     refreshToken: string;
+    nickname?: string; // Optimistic addition
 }
 
 export interface RsData<T> {
