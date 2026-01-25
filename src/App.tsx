@@ -4,19 +4,14 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import ProductListPage from './pages/ProductListPage';
 import WalletPage from './pages/WalletPage';
-
-// Placeholder components for routes not yet fully implemented
 import ProductDetailPage from './pages/ProductDetailPage';
-
-// Placeholder components for routes not yet fully implemented
 import SignupPage from './pages/SignupPage';
 import SellerRequestPage from './pages/SellerRequestPage';
-// const SignupPage = () => <div className="card"><h1>회원가입</h1><p>회원가입 페이지입니다.</p></div>;
 import CartPage from './pages/CartPage';
-// const CartPage = () => <div className="card"><h1>장바구니</h1><p>장바구니가 비어있습니다.</p></div>;
 import MyPage from './pages/MyPage';
-// const MyPage = () => <div className="card"><h1>마이페이지</h1><p>사용자 정보입니다.</p></div>;
-// const ProductDetail = () => <div className="card"><h1>상품 상세</h1><p>상품 상세 정보입니다.</p></div>;
+import OrdersPage from './pages/OrdersPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentFailPage from './pages/PaymentFailPage';
 
 function App() {
   return (
@@ -29,8 +24,11 @@ function App() {
         <Route path="market/:id" element={<ProductDetailPage />} />
         <Route path="cart" element={<CartPage />} />
         <Route path="mypage" element={<MyPage />} />
+        <Route path="orders" element={<OrdersPage />} />
         <Route path="wallet" element={<WalletPage />} />
         <Route path="seller-request" element={<SellerRequestPage />} />
+        <Route path="payment/success" element={<PaymentSuccessPage />} />
+        <Route path="payment/fail" element={<PaymentFailPage />} />
       </Route>
     </Routes>
   );

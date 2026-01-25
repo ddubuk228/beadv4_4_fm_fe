@@ -1,7 +1,7 @@
 import client from './client';
 
 export interface LoginRequest {
-    email: string; // Adjusted based on backend DTO usually usually it's email/username
+    email: string;
     password: string;
 }
 

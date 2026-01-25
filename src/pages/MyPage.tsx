@@ -24,70 +24,57 @@ const MyPage = () => {
             }
 
             try {
-                // 1. Get User ID
+                // 1. Get User ID and seller status from /me
                 const meResponse = await memberApi.getMe();
                 if (meResponse.resultCode.startsWith('S-200') || meResponse.resultCode.startsWith('200')) {
                     const meData = meResponse.data;
-                    let userId: number;
                     let userInfoFromMe: any = null;
                     console.log('DEBUG ME DATA:', meData); // Debug log
 
                     // Check if response is Object (New) or Number (Legacy)
                     if (typeof meData === 'object' && meData !== null) {
-                        // Support both userId and id
-                        if ('userId' in meData) {
-                            userId = (meData as any).userId;
-                        } else if ('id' in meData) {
-                            userId = (meData as any).id;
-                        } else {
-                            userId = 0;
-                        }
                         userInfoFromMe = meData;
                     } else if (typeof meData === 'number') {
-                        userId = meData;
-                    } else {
-                        console.error('Unknown meData format:', meData);
-                        userId = 0;
+                        // Handle legacy response where data is just userId
+                        userInfoFromMe = { userId: meData };
                     }
+
+                    // Prepare default/fallback wallet data
+                    let walletData = {
+                        walletId: 0,
+                        balance: 0,
+                        user: {
+                            id: (userInfoFromMe as any).userId || (userInfoFromMe as any).id || 0,
+                            email: (userInfoFromMe as any).email || '정보 없음',
+                            name: (userInfoFromMe as any).name || (userInfoFromMe as any).username || '사용자',
+                            nickname: (userInfoFromMe as any).nickname || localStorage.getItem('nickname') || 'User',
+                            profileImage: (userInfoFromMe as any).profileImage || null,
+                            createdAt: (userInfoFromMe as any).createdAt || new Date().toISOString(),
+                            sellerStatus: (userInfoFromMe as any).status
+                        }
+                    };
 
                     try {
-                        // 2. Try to get User Wallet
-                        const walletResponse = await walletApi.getUserWallet(userId);
-                        if (walletResponse.resultCode.startsWith('S-200') || walletResponse.resultCode.startsWith('200')) {
-                            const walletData = walletResponse.data;
-                            // Critical: Inject sellerStatus from /me API
-                            if (userInfoFromMe && (userInfoFromMe as any).status) {
-                                console.log('Injecting sellerStatus from status:', (userInfoFromMe as any).status);
-                                (walletData.user as any).sellerStatus = (userInfoFromMe as any).status;
+                        try {
+                            // 2. Try to get User Wallet Balance (safer API)
+                            // Using getBalance() to avoid potential serialization errors with getUserWallet()
+                            const balanceResponse = await walletApi.getBalance();
+                            if (balanceResponse.resultCode.startsWith('S-200') || balanceResponse.resultCode.startsWith('200')) {
+                                walletData.balance = balanceResponse.data;
+                                // walletId is not returned by getBalance, but it's okay, defaulting to 0
                             }
-                            setWalletInfo(walletData);
-                        } else {
-                            throw new Error('Wallet response failed');
+                        } catch (walletError) {
+                            console.warn('Wallet balance fetch failed (using default 0):', walletError);
                         }
                     } catch (walletError) {
-                        console.error('Failed to fetch wallet/user info, using fallback:', walletError);
-
-                        // Fallback Logic
-                        const storedNickname = localStorage.getItem('nickname');
-                        setWalletInfo({
-                            walletId: 0,
-                            balance: 0,
-                            user: {
-                                id: userId,
-                                email: '정보 없음',
-                                name: userInfoFromMe?.username || '사용자',
-                                // Priority: 1. API(Me), 2. LocalStorage, 3. Default
-                                nickname: userInfoFromMe?.nickname || storedNickname || `User ${userId}`,
-                                profileImage: null,
-                                createdAt: new Date().toISOString(),
-                                sellerStatus: userInfoFromMe?.status // Pass status from meData
-                            } as any // Temporary cast until CashUserDto is updated
-                        });
+                        console.warn('Wallet info fetch failed (using default):', walletError);
                     }
+
+                    // Set state with safe data
+                    setWalletInfo(walletData as any);
                 }
             } catch (e) {
                 console.error('Failed to fetch me info', e);
-                // If me fails, we truly cannot show anything -> loading state or redirect
             } finally {
                 setLoading(false);
             }

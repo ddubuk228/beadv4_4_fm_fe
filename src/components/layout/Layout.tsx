@@ -3,25 +3,23 @@ import Navbar from './Navbar';
 
 const Layout = () => {
     return (
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="flex flex-col min-h-screen bg-background-color text-text-main font-sans">
             <Navbar />
-            <main style={{ flex: 1, padding: 0 }}>
-                {/* Remove global container padding to allow full-width hero */}
-                <div style={{ width: '100%' }}>
+
+            <main className="flex-1 w-full relative">
+                <div className="w-full h-full">
                     <Outlet />
                 </div>
             </main>
-            <footer style={{
-                backgroundColor: 'var(--surface-color)',
-                borderTop: '1px solid var(--border-color)',
-                padding: '0.8rem 0',
-                marginTop: 'auto'
-            }}>
-                <div className="container" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                    &copy; {new Date().getFullYear()} Mossy Store. All rights reserved.
+
+            <footer className="bg-surface-color border-t border-border-color py-8 mt-auto">
+                <div className="container mx-auto px-4 text-center">
+                    <p className="text-text-muted text-sm font-medium">
+                        &copy; {new Date().getFullYear()} Mossy Store. All rights reserved.
+                    </p>
                 </div>
             </footer>
-        </div >
+        </div>
     );
 };
 

@@ -10,7 +10,7 @@ const LoginPage = () => {
 
     const handleLogin = async () => {
         try {
-            const response = await authApi.login({ email, password }); // Username mapping check needed if backend field is different
+            const response = await authApi.login({ email, password });
             if (response.resultCode.startsWith('S-200') || response.resultCode.startsWith('200')) {
                 localStorage.setItem('accessToken', response.data.accessToken);
                 localStorage.setItem('refreshToken', response.data.refreshToken);
@@ -21,9 +21,12 @@ const LoginPage = () => {
             } else {
                 setError('로그인 실패: ' + response.msg);
             }
-        } catch (err) {
-            setError('로그인 중 오류가 발생했습니다.');
-            console.error(err);
+        } catch (err: any) {
+            console.error('Login error details:', err);
+            console.error('Response data:', err.response?.data);
+
+            const errorMsg = err.response?.data?.msg || err.response?.data?.message || err.message || '로그인 중 오류가 발생했습니다.';
+            setError(`로그인 실패: ${errorMsg}`);
         }
     };
 
@@ -39,7 +42,7 @@ const LoginPage = () => {
                             type="text"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="username"
+                            placeholder="이메일을 입력하세요"
                             style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}
                         />
                     </div>

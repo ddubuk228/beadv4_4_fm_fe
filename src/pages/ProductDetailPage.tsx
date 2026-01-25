@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { marketApi, type ProductResponse } from '../api/market';
 import { cartApi } from '../api/cart';
+import { Button } from '../components/Button';
+import { FaLeaf, FaShieldAlt, FaTruck } from 'react-icons/fa';
 
 const ProductDetailPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -42,160 +44,214 @@ const ProductDetailPage = () => {
             }
         } catch (err: any) {
             console.error("Failed to add to cart", err);
-            alert(err.message || '장바구니 담기에 실패했습니다.');
+
+            if (err.message === "로그인이 필요합니다." || err.response?.status === 401) {
+                alert("로그인이 필요합니다.");
+                navigate('/login');
+            } else {
+                alert(err.message || '장바구니 담기에 실패했습니다.');
+            }
         }
     };
 
-    if (loading) return <div style={{ textAlign: 'center', padding: '5rem' }}>로딩 중...</div>;
-    if (error) return <div style={{ textAlign: 'center', padding: '5rem', color: 'red' }}>{error}</div>;
+    const handleDirectOrder = async (type: 'TOSS' | 'CASH') => {
+        if (!product) return;
+
+        if (!window.confirm(type === 'TOSS' ? "바로 주문하시겠습니까?" : "예치금으로 바로 결제하시겠습니까?")) return;
+
+        try {
+            const orderItems = [{
+                productId: product.productId,
+                sellerId: (product as any).sellerId || 0,
+                productName: product.name,
+                categoryName: (product as any).categoryName || "",
+                price: product.price,
+                weight: product.weight || 0,
+                thumbnailUrl: product.imageUrls?.[0] || "",
+                quantity: quantity
+            }];
+
+            const requestTotalPrice = product.price * quantity;
+
+            const orderRequest = {
+                totalPrice: requestTotalPrice,
+                paymentType: type === 'TOSS' ? "CARD" : "CASH",
+                items: orderItems
+            };
+
+            const orderResponse = await import('../api/order').then(({ orderApi }) => orderApi.createOrder(orderRequest));
+
+            if (!orderResponse.data || !orderResponse.data.orderId) {
+                throw new Error('주문 생성에 실패했습니다.');
+            }
+
+            const { orderNo } = orderResponse.data;
+            const uniqueOrderId = `${orderNo}__${Date.now()}`;
+
+            if (type === 'TOSS') {
+                const { loadTossPayments } = await import('@tosspayments/payment-sdk');
+                const { TOSS_CLIENT_KEY } = await import('../api/payment');
+                const tossPayments = await loadTossPayments(TOSS_CLIENT_KEY);
+
+                await tossPayments.requestPayment('카드', {
+                    amount: requestTotalPrice,
+                    orderId: uniqueOrderId,
+                    orderName: `${product.name} ${quantity > 1 ? `외 ${quantity - 1}건` : ''}`,
+                    successUrl: `${window.location.origin}/payment/success`,
+                    failUrl: `${window.location.origin}/payment/fail`,
+                });
+            } else {
+                window.location.href = `/payment/success?orderId=${uniqueOrderId}&amount=${requestTotalPrice}&method=CASH&status=DONE`;
+            }
+
+        } catch (err: any) {
+            console.error("Order failed", err);
+            alert("주문 접수 중 오류가 발생했습니다.\n" + (err.response?.data?.msg || err.message));
+        }
+    };
+
+    if (loading) return (
+        <div className="flex items-center justify-center min-h-[60vh] mt-20">
+            <div className="text-lg text-[var(--text-muted)] animate-pulse">상품 상세정보를 불러오는 중...</div>
+        </div>
+    );
+
+    if (error) return (
+        <div className="flex items-center justify-center min-h-[60vh] mt-20">
+            <div className="text-lg text-red-500">{error}</div>
+        </div>
+    );
+
     if (!product) return null;
 
     return (
-        <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-            <button
-                onClick={() => navigate(-1)}
-                style={{
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    cursor: 'pointer',
-                    marginBottom: '1rem',
-                    fontSize: '1rem'
-                }}
-            >
-                &larr; 뒤로가기
-            </button>
+        <div className="min-h-screen bg-[var(--background-color)] pt-32 pb-20">
+            <div className="container mx-auto px-4 max-w-6xl">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="mb-8 text-[var(--text-muted)] hover:text-[var(--primary-color)] transition-colors flex items-center gap-2 font-medium"
+                >
+                    &larr; 돌아가기
+                </button>
 
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-                gap: '4rem',
-                backgroundColor: 'white',
-                padding: '3rem',
-                borderRadius: 'var(--radius-lg)',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-            }}>
-                {/* Image Section */}
-                <div style={{
-                    borderRadius: 'var(--radius-md)',
-                    overflow: 'hidden',
-                    backgroundColor: '#f8fafc',
-                    aspectRatio: '1/1',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
-                    {product.imageUrls && product.imageUrls.length > 0 ? (
-                        <img
-                            src={product.imageUrls[0]}
-                            alt={product.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                    ) : (
-                        <span style={{ fontSize: '5rem', opacity: 0.2 }}>🌿</span>
-                    )}
-                </div>
-
-                {/* Info Section */}
-                <div>
-                    <div style={{
-                        display: 'inline-block',
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '9999px',
-                        backgroundColor: '#e0f2fe',
-                        color: '#0369a1',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        marginBottom: '1rem'
-                    }}>
-                        {product.status === 'FOR_SALE' ? '판매중' : '품절'}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 bg-white p-8 md:p-12 rounded-[2rem] border border-[var(--border-color)] shadow-sm">
+                    {/* Image Section */}
+                    <div className="space-y-4">
+                        <div className="aspect-square bg-[#f8fafc] rounded-[1.5rem] overflow-hidden flex items-center justify-center relative shadow-inner">
+                            {product.imageUrls && product.imageUrls.length > 0 ? (
+                                <img
+                                    src={product.imageUrls[0]}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                                />
+                            ) : (
+                                <div className="text-center opacity-30">
+                                    <FaLeaf className="text-8xl mx-auto mb-4 text-[var(--secondary-color)]" />
+                                </div>
+                            )}
+                        </div>
+                        {/* More images could go here as thumbnails */}
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="text-center p-4 bg-green-50 rounded-xl">
+                                <FaLeaf className="mx-auto text-green-600 mb-2" />
+                                <span className="text-xs font-semibold text-green-700">친환경 소재</span>
+                            </div>
+                            <div className="text-center p-4 bg-blue-50 rounded-xl">
+                                <FaShieldAlt className="mx-auto text-blue-600 mb-2" />
+                                <span className="text-xs font-semibold text-blue-700">인증 완료</span>
+                            </div>
+                            <div className="text-center p-4 bg-orange-50 rounded-xl">
+                                <FaTruck className="mx-auto text-orange-600 mb-2" />
+                                <span className="text-xs font-semibold text-orange-700">안전 배송</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', lineHeight: 1.2 }}>{product.name}</h1>
+                    {/* Info Section */}
+                    <div className="flex flex-col">
+                        <div className="mb-2">
+                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 ${product.status === 'FOR_SALE' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                                {product.status === 'FOR_SALE' ? 'In Stock' : 'Sold Out'}
+                            </span>
+                        </div>
 
-                    <p style={{
-                        fontSize: '1.5rem',
-                        fontWeight: 'bold',
-                        color: 'var(--primary-color)',
-                        marginBottom: '2rem'
-                    }}>
-                        {product.price?.toLocaleString() ?? 0} 원
-                    </p>
+                        <h1 className="text-4xl md:text-5xl font-serif font-bold text-[var(--text-main)] mb-4 leading-tight">
+                            {product.name}
+                        </h1>
 
-                    <div style={{
-                        borderTop: '1px solid #e2e8f0',
-                        borderBottom: '1px solid #e2e8f0',
-                        padding: '1.5rem 0',
-                        marginBottom: '2rem'
-                    }}>
-                        <p style={{ lineHeight: 1.6, color: 'var(--text-color)', fontSize: '1.1rem' }}>
-                            {product.description}
+                        <p className="text-3xl font-bold text-[var(--primary-color)] mb-8 border-b border-[var(--border-color)] pb-8">
+                            {product.price?.toLocaleString()} <span className="text-lg font-normal text-[var(--text-muted)]">원</span>
                         </p>
-                    </div>
 
-                    <div style={{ marginBottom: '2rem', display: 'flex', gap: '2rem', color: 'var(--text-muted)' }}>
-                        <div>
-                            <span style={{ display: 'block', fontSize: '0.875rem' }}>남은 수량</span>
-                            <span style={{ fontWeight: 600, color: 'var(--text-color)' }}>{product.quantity}개</span>
+                        <div className="prose prose-lg text-[var(--text-muted)] mb-10 leading-relaxed max-w-none">
+                            <p>{product.description}</p>
                         </div>
-                        <div>
-                            <span style={{ display: 'block', fontSize: '0.875rem' }}>무게</span>
-                            <span style={{ fontWeight: 600, color: 'var(--text-color)' }}>{product.weight ?? 0}kg</span>
-                        </div>
-                    </div>
 
-                    {/* Quantity Selector */}
-                    <div style={{ marginBottom: '2rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--text-main)' }}>수량 선택</label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <button
-                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid var(--border-color)', backgroundColor: 'white', fontSize: '1.2rem', cursor: 'pointer' }}
-                            >-</button>
-                            <input
-                                type="number"
-                                value={quantity}
-                                onChange={(e) => setQuantity(Math.max(1, Math.min(product.quantity || 99, Number(e.target.value))))}
-                                style={{ width: '80px', height: '40px', textAlign: 'center', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', fontSize: '1.1rem' }}
-                            />
-                            <button
-                                onClick={() => setQuantity(Math.min(product.quantity || 99, quantity + 1))}
-                                style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid var(--border-color)', backgroundColor: 'white', fontSize: '1.2rem', cursor: 'pointer' }}
-                            >+</button>
+                        <div className="grid grid-cols-2 gap-8 mb-10 text-sm">
+                            <div>
+                                <span className="block text-[var(--text-muted)] mb-1">잔여 수량</span>
+                                <span className="block font-semibold text-[var(--text-main)] text-lg">{product.quantity}개</span>
+                            </div>
+                            <div>
+                                <span className="block text-[var(--text-muted)] mb-1">무게</span>
+                                <span className="block font-semibold text-[var(--text-main)] text-lg">{product.weight ?? 0}g</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button
-                            onClick={handleAddToCart}
-                            style={{
-                                flex: 1,
-                                padding: '1rem',
-                                backgroundColor: 'white',
-                                border: '1px solid var(--primary-color)',
-                                color: 'var(--primary-color)',
-                                borderRadius: 'var(--radius-md)',
-                                fontWeight: 600,
-                                fontSize: '1.1rem',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}>
-                            장바구니 담기
-                        </button>
-                        <button style={{
-                            flex: 1,
-                            padding: '1rem',
-                            backgroundColor: 'var(--primary-color)',
-                            border: 'none',
-                            color: 'white',
-                            borderRadius: 'var(--radius-md)',
-                            fontWeight: 600,
-                            fontSize: '1.1rem',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                        }}>
-                            바로 구매하기
-                        </button>
+                        <div className="mt-auto space-y-8">
+                            {/* Quantity Selector */}
+                            <div>
+                                <label className="block text-sm font-bold text-[var(--text-main)] mb-3">수량 선택</label>
+                                <div className="flex items-center gap-4 bg-slate-50 inline-flex p-2 rounded-full border border-slate-200">
+                                    <button
+                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                        className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg font-bold hover:bg-gray-100 transition-colors"
+                                    >-</button>
+                                    <input
+                                        type="number"
+                                        value={quantity}
+                                        onChange={(e) => setQuantity(Math.max(1, Math.min(product.quantity || 99, Number(e.target.value))))}
+                                        className="w-16 text-center bg-transparent font-bold text-lg outline-none"
+                                    />
+                                    <button
+                                        onClick={() => setQuantity(Math.min(product.quantity || 99, quantity + 1))}
+                                        className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg font-bold hover:bg-gray-100 transition-colors"
+                                    >+</button>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-4">
+                                <div className="flex gap-4">
+                                    <Button
+                                        variant="outline"
+                                        size="lg"
+                                        fullWidth
+                                        onClick={handleAddToCart}
+                                        className="h-14"
+                                    >
+                                        장바구니 담기
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        size="lg"
+                                        fullWidth
+                                        onClick={() => handleDirectOrder('TOSS')}
+                                        className="h-14 bg-primary-color"
+                                    >
+                                        카드 결제하기
+                                    </Button>
+                                    <Button
+
+                                        size="lg"
+                                        fullWidth
+                                        onClick={() => handleDirectOrder('CASH')}
+                                        className="h-14 bg-emerald-600 text-white hover:bg-emerald-700 border-none shadow-lg shadow-emerald-900/10"
+                                    >
+                                        예치금 결제
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

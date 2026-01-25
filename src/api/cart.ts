@@ -4,10 +4,13 @@ import { getUserIdFromToken } from '../utils/auth';
 export interface CartItem {
     id: number;
     productId: number;
+    sellerId: number;
     productName: string;
-    productPrice: number;
+    price: number; // matched with API
     quantity: number;
-    imageUrls: string[];
+    thumbnailUrl: string | null; // matched with API
+    categoryName?: string;
+    weight?: number;
 }
 
 export interface CartResponse {
@@ -59,6 +62,16 @@ export const cartApi = {
             productId,
             quantity
         }, {
+            params: { userId }
+        });
+        return response.data;
+    },
+
+    clearCart: async () => {
+        const userId = getUserIdFromToken();
+        if (!userId) throw new Error("로그인이 필요합니다.");
+
+        const response = await client.delete<RsData<void>>('/cart', {
             params: { userId }
         });
         return response.data;

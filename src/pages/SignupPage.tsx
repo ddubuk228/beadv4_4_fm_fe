@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDaumPostcodePopup } from 'react-daum-postcode';
 import Modal from '../components/Modal';
-import { authApi, type SignupRequest } from '../api/auth';
+import { authApi } from '../api/auth';
 
 const SignupPage = () => {
     const navigate = useNavigate();
@@ -27,38 +27,31 @@ const SignupPage = () => {
     // Additional state for error handling and success modal
     // Robust Script Loader
     useEffect(() => {
-        const scriptId = 'kakao-map-script';
-        const existingScript = document.getElementById(scriptId);
+        let attempts = 0;
+        const maxAttempts = 100; // 10 seconds (100ms * 100)
 
-        if (existingScript) {
+        const checkMapLoaded = () => {
+            // Check if the script is loaded and the kakao object is available
             if ((window as any).kakao && (window as any).kakao.maps) {
-                setIsMapLoaded(true);
+                // Initialize using the autoload=false pattern
+                (window as any).kakao.maps.load(() => {
+                    console.log("KaKao Maps SDK loaded and initialized.");
+                    setIsMapLoaded(true);
+                    setMapError(false);
+                });
+            } else {
+                attempts++;
+                if (attempts < maxAttempts) {
+                    setTimeout(checkMapLoaded, 100);
+                } else {
+                    console.error("Kakao Maps SDK failed to load within timeout (10s).");
+                    setMapError(true);
+                    alert(`지도 스크립트 로딩 실패.\n\n[체크리스트]\n1. Kakao Developers > 내 애플리케이션 > 플랫폼 > Web > 사이트 도메인에 '${window.location.origin}' 이 등록되어 있는지 확인해주세요.\n(현재 실행 중인 포트가 ${window.location.port} 입니다)\n\n2. API 키가 정확한지 확인해주세요.`);
+                }
             }
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.id = scriptId;
-        script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=5dd5ef04cbba5202b3410c0e76f2f8c5&libraries=services&autoload=false';
-        script.async = true;
-
-        script.onload = () => {
-            (window as any).kakao.maps.load(() => {
-                console.log('Kakao Maps SDK initialized');
-                setIsMapLoaded(true);
-            });
         };
 
-        script.onerror = () => {
-            console.error('Failed to load Kakao Maps SDK');
-            setMapError(true);
-        };
-
-        document.head.appendChild(script);
-
-        return () => {
-            // Optional: cleanup if needed, but usually we want to keep the script
-        };
+        checkMapLoaded();
     }, []);
 
     const handleAddressComplete = (data: any) => {
@@ -77,36 +70,38 @@ const SignupPage = () => {
 
         // Geocoding
         if (isMapLoaded && (window as any).kakao && (window as any).kakao.maps) {
-            const geocoder = new (window as any).kakao.maps.services.Geocoder();
-            geocoder.addressSearch(data.address, (result: any, status: any) => {
-                if (status === (window as any).kakao.maps.services.Status.OK) {
-                    const coords = new (window as any).kakao.maps.LatLng(result[0].y, result[0].x);
-                    const latitude = coords.getLat();
-                    const longitude = coords.getLng();
+            (window as any).kakao.maps.load(() => {
+                const geocoder = new (window as any).kakao.maps.services.Geocoder();
+                geocoder.addressSearch(data.address, (result: any, status: any) => {
+                    if (status === (window as any).kakao.maps.services.Status.OK) {
+                        const coords = new (window as any).kakao.maps.LatLng(result[0].y, result[0].x);
+                        const latitude = coords.getLat();
+                        const longitude = coords.getLng();
 
-                    console.log("Geocoding success:", latitude, longitude);
+                        console.log("Geocoding success:", latitude, longitude);
 
-                    setFormData(prev => ({
-                        ...prev,
-                        address: fullAddress,
-                        latitude: latitude,
-                        longitude: longitude
-                    }));
-                } else {
-                    console.error("Geocoding failed. Status:", status);
-                    alert("주소의 위치 정보를 찾을 수 없습니다. (Kakao Maps API 오류)\n도메인 등록 여부나 API 키를 확인해주세요.");
-                    // Fallback: Reset to 0
-                    setFormData(prev => ({
-                        ...prev,
-                        address: fullAddress,
-                        latitude: 0,
-                        longitude: 0
-                    }));
-                }
+                        setFormData(prev => ({
+                            ...prev,
+                            address: fullAddress,
+                            latitude: latitude,
+                            longitude: longitude
+                        }));
+                    } else {
+                        console.error("Geocoding failed. Status:", status);
+                        alert("주소의 위치 정보를 찾을 수 없습니다. (Kakao Maps API 오류)\n도메인 등록 여부나 API 키를 확인해주세요.");
+                        // Fallback: Reset to 0
+                        setFormData(prev => ({
+                            ...prev,
+                            address: fullAddress,
+                            latitude: 0,
+                            longitude: 0
+                        }));
+                    }
+                });
             });
         } else {
             console.error("Kakao Maps SDK not ready");
-            alert("지도 서비스가 아직 로드되지 않았거나 차단되었습니다.\n잠시 후 다시 시도하거나 광고 차단 기능을 확인해주세요.");
+            alert("지도 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
             setFormData(prev => ({
                 ...prev,
                 address: fullAddress

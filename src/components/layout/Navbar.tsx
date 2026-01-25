@@ -36,88 +36,54 @@ const Navbar = () => {
     };
 
     return (
-        <nav style={{
-            position: 'fixed',
-            top: '1.5rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1000,
-            width: '90%',
-            maxWidth: '1200px',
-            backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            borderRadius: '9999px',
-            padding: scrolled ? '0.5rem 2rem' : '0.75rem 2rem',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-            border: '1px solid rgba(255, 255, 255, 0.4)',
-            transition: 'all 0.3s ease'
-        }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Link to="/" style={{
-                    fontSize: '1.5rem',
-                    fontFamily: 'Playfair Display, serif',
-                    fontWeight: 'bold',
-                    color: 'var(--primary-color)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    letterSpacing: '-0.02em'
-                }}>
+        <nav
+            className={`
+                fixed top-6 left-1/2 -translate-x-1/2 z-50 
+                w-[90%] max-w-6xl 
+                rounded-full 
+                border border-white/40 
+                transition-all duration-300 ease-in-out
+                ${scrolled
+                    ? 'bg-white/90 backdrop-blur-xl shadow-lg py-2 px-6'
+                    : 'bg-white/60 backdrop-blur-md shadow-sm py-3 px-8'
+                }
+            `}
+        >
+            <div className="flex justify-between items-center">
+                <Link to="/" className="flex items-center gap-2 text-2xl font-serif font-bold text-primary-color tracking-tight hover:opacity-80 transition-opacity">
                     Mossy
                 </Link>
 
-                <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-                    <Link to="/market" style={{ fontWeight: 500, fontSize: '0.95rem' }}>Market</Link>
+                <div className="flex gap-8 items-center">
+                    <Link to="/market" className="font-medium text-text-main hover:text-primary-color transition-colors text-sm uppercase tracking-wide">
+                        Market
+                    </Link>
 
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <div className="flex gap-3 items-center">
                         {isLoggedIn && (
-                            <Link to="/wallet" className="btn btn-outline" style={{
-                                padding: '0.5rem',
-                                borderRadius: '50%',
-                                width: '40px',
-                                height: '40px',
-                                border: 'none',
-                                backgroundColor: 'rgba(255,255,255,0.5)'
-                            }}>
+                            <Link to="/wallet" className="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 hover:bg-white hover:text-primary-color text-text-muted transition-all border border-transparent hover:border-primary-color/20 hover:shadow-md">
                                 <FaWallet size={16} />
                             </Link>
                         )}
-                        <Link to="/cart" className="btn btn-outline" style={{
-                            padding: '0.5rem',
-                            borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
-                            border: 'none',
-                            backgroundColor: 'rgba(255,255,255,0.5)'
-                        }}>
+                        <Link to="/cart" className="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 hover:bg-white hover:text-primary-color text-text-muted transition-all border border-transparent hover:border-primary-color/20 hover:shadow-md">
                             <FaShoppingCart size={16} />
                         </Link>
-                        <Link to="/mypage" className="btn btn-outline" style={{
-                            padding: '0.5rem',
-                            borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
-                            border: 'none',
-                            backgroundColor: 'rgba(255,255,255,0.5)'
-                        }}>
+                        <Link to="/mypage" className="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 hover:bg-white hover:text-primary-color text-text-muted transition-all border border-transparent hover:border-primary-color/20 hover:shadow-md">
                             <FaUser size={16} />
                         </Link>
+
                         {isLoggedIn ? (
-                            <button onClick={handleLogout} className="btn" style={{
-                                fontSize: '0.9rem',
-                                padding: '0.5rem 1.25rem',
-                                backgroundColor: 'rgba(0,0,0,0.05)',
-                                color: 'var(--text-main)',
-                                fontWeight: 500
-                            }}>
+                            <button
+                                onClick={handleLogout}
+                                className="px-5 py-2 rounded-full text-sm font-medium bg-black/5 text-text-main hover:bg-black/10 transition-colors ml-2"
+                            >
                                 Log out
                             </button>
                         ) : (
-                            <Link to="/login" className="btn btn-primary" style={{
-                                padding: '0.6rem 1.5rem',
-                                fontSize: '0.9rem'
-                            }}>
+                            <Link
+                                to="/login"
+                                className="px-6 py-2.5 rounded-full text-sm font-medium bg-primary-color text-white shadow-lg shadow-primary-color/20 hover:bg-primary-hover hover:shadow-xl hover:-translate-y-0.5 transition-all ml-2"
+                            >
                                 Log in
                             </Link>
                         )}

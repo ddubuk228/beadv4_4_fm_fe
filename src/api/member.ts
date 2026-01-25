@@ -26,8 +26,19 @@ export interface UserProfile {
 export interface MeResponse {
     userId: number;
     nickname: string;
-    username: string;
-    status?: string; // "PENDING", "APPROVED", etc. Maps to SellerRequestStatus
+    username: string; // This maps to principal.getUser().getName() from backend
+    status?: string | null; // SellerRequestStatus (nullable)
+}
+
+export interface UserDetail {
+    id: number;
+    email: string;
+    name: string;
+    nickname: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    phoneNum?: string;
 }
 
 export const memberApi = {

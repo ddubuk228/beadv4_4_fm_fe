@@ -6,6 +6,7 @@ export interface ProductResponse {
     price: number;
     description?: string;
     imageUrls?: string[];
+    weight?: number;
     // Add other fields based on backend response
     status?: string;
     quantity?: number;
@@ -20,9 +21,12 @@ export interface Page<T> {
 }
 
 export const marketApi = {
-    getProducts: async (page = 0, size = 10) => {
+    getProducts: async (page = 0, size = 10, keyword?: string) => {
+        const params: any = { page, size };
+        if (keyword) params.keyword = keyword;
+
         const response = await client.get<RsData<Page<ProductResponse>>>('/product/products', {
-            params: { page, size }
+            params
         });
         return response.data;
     },
