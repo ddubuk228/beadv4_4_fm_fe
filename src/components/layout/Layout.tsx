@@ -12,7 +12,7 @@ const Layout = () => {
                 </div>
             </main>
 
-            <footer className="bg-surface-color border-t border-border-color py-8 mt-auto">
+            <footer className="bg-surface-color border-t border-border-color py-4 mt-auto">
                 <div className="container mx-auto px-4 text-center">
                     <p className="text-text-muted text-sm font-medium">
                         &copy; {new Date().getFullYear()} Mossy Store. All rights reserved.

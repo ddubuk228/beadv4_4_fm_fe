@@ -49,7 +49,7 @@ const ProductListPage = () => {
     }
 
     return (
-        <div className="bg-background-color min-h-screen pt-36 pb-20">
+        <div className="bg-background-color min-h-screen pb-20" style={{ paddingTop: '140px' }}>
             <div className="container mx-auto px-4 max-w-[1200px]">
                 <header className="mb-16 text-center">
                     <span className="text-accent-color font-bold tracking-widest uppercase text-sm mb-4 block animate-fade-in-up">Our Collection</span>

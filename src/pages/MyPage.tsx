@@ -95,8 +95,8 @@ const MyPage = () => {
     const { user, balance } = walletInfo;
 
     return (
-        <div className="container" style={{ maxWidth: '900px', margin: '2rem auto', marginTop: '120px' }}>
-            <h1 style={{ marginBottom: '2rem', fontSize: '2rem', textAlign: 'left', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--primary-color)' }}>마이 페이지</h1>
+        <div className="container" style={{ maxWidth: '1024px', margin: '0 auto', paddingTop: '140px', paddingBottom: '2rem' }}>
+            <h1 style={{ marginBottom: '2rem', fontSize: '2rem', textAlign: 'left', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--primary-color)' }}>마이페이지</h1>
 
             {/* 1. Profile Section - Horizontal Layout */}
             <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem', padding: '1.75rem' }}>

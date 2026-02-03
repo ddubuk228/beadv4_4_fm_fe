@@ -103,12 +103,12 @@ const WalletPage = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 max-w-5xl pt-32 pb-20">
-            <h1 className="text-4xl font-serif font-bold mb-8 text-primary-color tracking-tight">내 지갑</h1>
+        <div className="container mx-auto px-4 max-w-5xl pb-20" style={{ paddingTop: '140px' }}>
+            <h1 className="text-4xl font-serif font-bold text-primary-color tracking-tight" style={{ marginBottom: '30px' }}>내 지갑</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Balance Card */}
-                <Card className="md:col-span-1 bg-stone-50 border-stone-200 h-fit sticky top-32">
+                <Card className="md:col-span-1 bg-stone-50 border-stone-200 h-fit md:sticky top-32">
                     <h3 className="text-text-muted text-sm font-medium mb-2 uppercase tracking-wide">
                         보유 잔액
                     </h3>
@@ -135,7 +135,7 @@ const WalletPage = () => {
                 </Card>
 
                 {/* Transaction History Area */}
-                <Card className="md:col-span-2 min-h-[500px]">
+                <Card className="md:col-span-2 min-h-[300px]">
                     <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
                         <h3 className="text-xl font-semibold text-text-main">최근 거래 내역</h3>
                     </div>

@@ -94,15 +94,19 @@ const OrdersPage = () => {
     }
 
     return (
-        <div className="container" style={{ maxWidth: '800px', margin: '2rem auto', marginTop: '120px' }}>
+        <div className="container" style={{ maxWidth: '1024px', margin: '0 auto', paddingTop: '140px', paddingBottom: '4rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary-color)' }}>주문 내역</h1>
-                <button onClick={() => navigate('/mypage')} className="btn btn-outline">마이페이지</button>
+                <button onClick={() => navigate('/mypage')} className="btn btn-outline" style={{ borderColor: '#e2e8f0', color: '#64748b' }}>
+                    마이페이지
+                </button>
             </div>
 
             {orders.length === 0 ? (
-                <div className="card" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-                    <p>주문 내역이 없습니다.</p>
+                <div className="card shadow-md" style={{ padding: '4rem 2rem', textAlign: 'center', backgroundColor: '#fff', borderRadius: '16px' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📦</div>
+                    <p style={{ fontSize: '1.1rem', color: '#64748b' }}>아직 주문 내역이 없습니다.</p>
+                    <button onClick={() => navigate('/')} className="btn btn-primary" style={{ marginTop: '1.5rem', padding: '0.75rem 2rem' }}>쇼핑하러 가기</button>
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -111,11 +115,24 @@ const OrdersPage = () => {
                         const details = detailsCache[order.orderId];
 
                         return (
-                            <div key={order.orderId} className="card" style={{ padding: '0', overflow: 'hidden', border: isExpanded ? '1px solid var(--primary-color)' : '1px solid #e2e8f0', transition: 'all 0.2s' }}>
+                            <div
+                                key={order.orderId}
+                                className="card group"
+                                style={{
+                                    padding: '0',
+                                    overflow: 'hidden',
+                                    border: isExpanded ? '1px solid var(--primary-color)' : '1px solid #e2e8f0',
+                                    transition: 'all 0.3s ease',
+                                    borderRadius: '16px',
+                                    backgroundColor: '#fff',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+                                }}
+                            >
                                 {/* Order Summary (Clickable) */}
                                 <div
                                     onClick={() => toggleOrder(order.orderId, order.orderNo)}
-                                    style={{ padding: '1.5rem', cursor: 'pointer', backgroundColor: isExpanded ? '#f8fafc' : 'white' }}
+                                    className="hover:bg-gray-50 transition-colors duration-200"
+                                    style={{ padding: '1.75rem', cursor: 'pointer', backgroundColor: isExpanded ? '#f8fafc' : 'white' }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                                         <div>
