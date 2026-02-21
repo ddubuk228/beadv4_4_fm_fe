@@ -13,6 +13,10 @@ import OrdersPage from './pages/OrdersPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import PaymentFailPage from './pages/PaymentFailPage';
 
+import AuthCallbackPage from './pages/AuthCallbackPage';
+import SignupCompletePage from './pages/SignupCompletePage';
+import AdminPage from './pages/AdminPage';
+
 function App() {
   return (
     <Routes>
@@ -24,11 +28,14 @@ function App() {
         <Route path="market/:id" element={<ProductDetailPage />} />
         <Route path="cart" element={<CartPage />} />
         <Route path="mypage" element={<MyPage />} />
+        <Route path="admin" element={<AdminPage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="wallet" element={<WalletPage />} />
         <Route path="seller-request" element={<SellerRequestPage />} />
         <Route path="payment/success" element={<PaymentSuccessPage />} />
         <Route path="payment/fail" element={<PaymentFailPage />} />
+        <Route path="auth/callback" element={<AuthCallbackPage />} />
+        <Route path="signup/complete" element={<SignupCompletePage />} />
       </Route>
     </Routes>
   );

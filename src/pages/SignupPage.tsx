@@ -119,15 +119,11 @@ const SignupPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validate Coordinates (Skip if map failed)
+        // TEMPORARY: Always use Seoul City Hall coordinates if missing (for testing)
+        // User requested to bypass coordinate validation
         let finalData = { ...formData };
-        if (!mapError && (formData.latitude === 0 || formData.longitude === 0)) {
-            alert("주소의 위치 정보(위도/경도)가 설정되지 않았습니다.\n주소를 다시 검색하거나, 올바른 주소를 선택해주세요.");
-            return;
-        }
-
-        // If map failed, use default coordinates (Seoul City Hall) to bypass backend validation
-        if (mapError && (formData.latitude === 0 || formData.longitude === 0)) {
+        if (finalData.latitude === 0 || finalData.longitude === 0) {
+            console.warn("Missing coordinates. Using Seoul City Hall fallback for testing.");
             finalData.latitude = 37.5665;
             finalData.longitude = 126.9780;
         }

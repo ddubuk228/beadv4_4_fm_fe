@@ -11,7 +11,7 @@ const Navbar = () => {
 
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
-        setIsLoggedIn(!!token);
+        setIsLoggedIn(!!token && token !== 'undefined' && token !== 'null');
 
         const handleScroll = () => {
             setScrolled(window.scrollY > 20);
@@ -21,18 +21,15 @@ const Navbar = () => {
     }, [location]);
 
     const handleLogout = async () => {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-            try {
-                await authApi.logout(refreshToken);
-            } catch (e) {
-                console.error("Logout failed", e);
-            }
+        try {
+            await authApi.logout();
+        } catch (e) {
+            console.error("Logout failed", e);
         }
         localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('nickname'); // Clean up nickname if it exists
         setIsLoggedIn(false);
-        navigate('/login');
+        navigate('/');
     };
 
     return (

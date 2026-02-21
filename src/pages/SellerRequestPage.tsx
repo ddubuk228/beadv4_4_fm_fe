@@ -111,6 +111,10 @@ const SellerRequestPage = () => {
 
         let finalData = { ...formData };
 
+        if (finalData.sellerType === 'INDIVIDUAL') {
+            (finalData as any).businessNum = null;
+        }
+
         // Manual Fallback for Map Error
         if (mapError && (finalData.latitude === 0 || finalData.longitude === 0)) {
             finalData.latitude = 37.5665;
@@ -156,10 +160,12 @@ const SellerRequestPage = () => {
                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>상호명 (Store Name)</label>
                         <input name="storeName" value={formData.storeName} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
                     </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>사업자 등록번호</label>
-                        <input name="businessNum" value={formData.businessNum} onChange={handleChange} required placeholder="000-00-00000" style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
-                    </div>
+                    {formData.sellerType === 'BUSINESS' && (
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>사업자 등록번호</label>
+                            <input name="businessNum" value={formData.businessNum} onChange={handleChange} required placeholder="000-00-00000" style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
+                        </div>
+                    )}
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>대표자명</label>
                         <input name="representativeName" value={formData.representativeName} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
@@ -204,7 +210,7 @@ const SellerRequestPage = () => {
             <Modal
                 isOpen={showSuccessModal}
                 title="신청 완료"
-                message="판매자 신청이 성공적으로 접수되었습니다.\n관리자 승인 후 판매 활동이 가능합니다."
+                message="관리자 승인 후 판매 활동이 가능합니다."
                 onConfirm={() => {
                     setShowSuccessModal(false);
                     navigate('/mypage');
