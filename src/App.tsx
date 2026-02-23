@@ -16,6 +16,10 @@ import PaymentFailPage from './pages/PaymentFailPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import SignupCompletePage from './pages/SignupCompletePage';
 import AdminPage from './pages/AdminPage';
+import ProfileEditPage from './pages/ProfileEditPage';
+import SellerLayout from './components/layout/SellerLayout';
+import SellerDashboardPage from './pages/seller/SellerDashboardPage';
+import SellerOrderDetailPage from './pages/seller/order/SellerOrderDetailPage';
 
 function App() {
   return (
@@ -28,6 +32,7 @@ function App() {
         <Route path="market/:id" element={<ProductDetailPage />} />
         <Route path="cart" element={<CartPage />} />
         <Route path="mypage" element={<MyPage />} />
+        <Route path="profile/edit" element={<ProfileEditPage />} />
         <Route path="admin" element={<AdminPage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="wallet" element={<WalletPage />} />
@@ -36,6 +41,11 @@ function App() {
         <Route path="payment/fail" element={<PaymentFailPage />} />
         <Route path="auth/callback" element={<AuthCallbackPage />} />
         <Route path="signup/complete" element={<SignupCompletePage />} />
+      </Route>
+
+      <Route path="/myshop" element={<SellerLayout />}>
+        <Route index element={<SellerDashboardPage />} />
+        <Route path="orders/:id" element={<SellerOrderDetailPage />} />
       </Route>
     </Routes>
   );

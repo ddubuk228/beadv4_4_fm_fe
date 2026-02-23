@@ -62,7 +62,7 @@ const AdminPage = () => {
                     const res = await adminApi.approveSellerRequest(id);
                     if (res.resultCode.startsWith('S-')) {
                         alert('승인되었습니다.');
-                        fetchRequests();
+                        window.location.reload();
                     } else {
                         alert('승인 실패: ' + res.msg);
                     }
@@ -84,7 +84,7 @@ const AdminPage = () => {
                     const res = await adminApi.rejectSellerRequest(id);
                     if (res.resultCode.startsWith('S-')) {
                         alert('반려되었습니다.');
-                        fetchRequests();
+                        window.location.reload();
                     } else {
                         alert('반려 실패: ' + res.msg);
                     }
@@ -108,7 +108,7 @@ const AdminPage = () => {
                     <div style={{
                         padding: '1rem',
                         backgroundColor: '#444',
-                        borderRadius: '8px',
+                        borderRadius: '16px',
                         cursor: 'pointer',
                         fontWeight: '500'
                     }}>
@@ -130,7 +130,7 @@ const AdminPage = () => {
                             padding: '0.5rem 1rem',
                             backgroundColor: '#fff',
                             border: '1px solid #ddd',
-                            borderRadius: '6px',
+                            borderRadius: '50px',
                             color: '#555',
                             fontWeight: '500',
                             cursor: 'pointer',
@@ -143,7 +143,7 @@ const AdminPage = () => {
                     </button>
                 </div>
 
-                <div style={{ backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', padding: '2rem' }}>
+                <div style={{ backgroundColor: '#fff', borderRadius: '24px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', padding: '2rem' }}>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '2px solid #eee', paddingBottom: '0.5rem' }}>
                         대기 중인 요청서 ({requests.length}건)
                     </h3>
@@ -153,7 +153,7 @@ const AdminPage = () => {
                     ) : error ? (
                         <div style={{ textAlign: 'center', padding: '3rem', color: 'red' }}>{error}</div>
                     ) : requests.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '4rem', color: '#999', backgroundColor: '#fafafa', borderRadius: '8px' }}>
+                        <div style={{ textAlign: 'center', padding: '4rem', color: '#999', backgroundColor: '#fafafa', borderRadius: '16px' }}>
                             현재 대기 중인 판매자 신청이 없습니다.
                         </div>
                     ) : (
@@ -161,7 +161,7 @@ const AdminPage = () => {
                             {requests.map((req) => (
                                 <div key={req.id} style={{
                                     border: '1px solid #eaeaea',
-                                    borderRadius: '8px',
+                                    borderRadius: '20px',
                                     padding: '1.5rem',
                                     display: 'flex',
                                     justifyContent: 'space-between',
@@ -205,7 +205,7 @@ const AdminPage = () => {
                                                 color: '#16a34a',
                                                 border: '1px solid #bbf7d0',
                                                 padding: '0.6rem 2rem',
-                                                borderRadius: '6px',
+                                                borderRadius: '50px',
                                                 fontWeight: 'bold',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.2s'
@@ -222,7 +222,7 @@ const AdminPage = () => {
                                                 color: '#dc2626',
                                                 border: '1px solid #fecaca',
                                                 padding: '0.6rem 2rem',
-                                                borderRadius: '6px',
+                                                borderRadius: '50px',
                                                 fontWeight: 'bold',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.2s'

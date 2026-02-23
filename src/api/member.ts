@@ -28,6 +28,11 @@ export interface MeResponse {
     nickname: string;
     username: string; // This maps to principal.getUser().getName() from backend
     status?: string | null; // SellerRequestStatus (nullable)
+    hasPassword?: boolean; // Indicates if the user has a password set (false for social-only accounts)
+    rrn?: string;
+    phoneNum?: string;
+    address?: string;
+    email?: string;
 }
 
 export interface UserDetail {
@@ -62,6 +67,22 @@ export const memberApi = {
     },
     updateProfile: async (data: ProfileUpdateRequest) => {
         const response = await client.patch<RsData<void>>('/users/profile', data);
+        return response.data;
+    },
+    changePassword: async (data: any) => {
+        const response = await client.patch<RsData<void>>('/users/password', data);
+        return response.data;
+    },
+    changeAddress: async (data: any) => {
+        const response = await client.patch<RsData<void>>('/users/address', data);
+        return response.data;
+    },
+    changePhoneNum: async (data: any) => {
+        const response = await client.patch<RsData<void>>('/users/phone', data);
+        return response.data;
+    },
+    setPassword: async (data: any) => {
+        const response = await client.post<RsData<void>>('/users/set-password', data);
         return response.data;
     }
 };
