@@ -3,7 +3,7 @@ import client, { type RsData } from './client';
 export interface SellerRequestCreateRequest {
     sellerType: "INDIVIDUAL" | "BUSINESS";
     storeName: string;
-    businessNum: string;
+    businessNum?: string;
     representativeName: string;
     contactEmail: string;
     contactPhone: string;
@@ -28,6 +28,11 @@ export interface MeResponse {
     nickname: string;
     username: string; // This maps to principal.getUser().getName() from backend
     status?: string | null; // SellerRequestStatus (nullable)
+    hasPassword?: boolean; // Indicates if the user has a password set (false for social-only accounts)
+    rrn?: string;
+    phoneNum?: string;
+    address?: string;
+    email?: string;
 }
 
 export interface UserDetail {
@@ -41,6 +46,15 @@ export interface UserDetail {
     phoneNum?: string;
 }
 
+export interface ProfileUpdateRequest {
+    nickname: string;
+    phoneNum: string;
+    address: string;
+    rrn: string;
+    latitude: number;
+    longitude: number;
+}
+
 export const memberApi = {
     getMe: async () => {
         // Supports both legacy (number) and new (MeResponse) format
@@ -49,6 +63,26 @@ export const memberApi = {
     },
     requestSeller: async (data: SellerRequestCreateRequest) => {
         const response = await client.post<RsData<number>>('/users/seller-request', data);
+        return response.data;
+    },
+    updateProfile: async (data: ProfileUpdateRequest) => {
+        const response = await client.patch<RsData<void>>('/users/profile', data);
+        return response.data;
+    },
+    changePassword: async (data: any) => {
+        const response = await client.patch<RsData<void>>('/users/password', data);
+        return response.data;
+    },
+    changeAddress: async (data: any) => {
+        const response = await client.patch<RsData<void>>('/users/address', data);
+        return response.data;
+    },
+    changePhoneNum: async (data: any) => {
+        const response = await client.patch<RsData<void>>('/users/phone', data);
+        return response.data;
+    },
+    setPassword: async (data: any) => {
+        const response = await client.post<RsData<void>>('/users/set-password', data);
         return response.data;
     }
 };

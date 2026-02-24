@@ -55,24 +55,15 @@ const SignupPage = () => {
     }, []);
 
     const handleAddressComplete = (data: any) => {
-        let fullAddress = data.address;
-        let extraAddress = '';
-
-        if (data.addressType === 'R') {
-            if (data.bname !== '') {
-                extraAddress += data.bname;
-            }
-            if (data.buildingName !== '') {
-                extraAddress += (extraAddress !== '' ? `, ${data.buildingName}` : data.buildingName);
-            }
-            fullAddress += (extraAddress !== '' ? ` (${extraAddress})` : '');
-        }
+        // User requested ONLY basic address to be sent to API
+        const basicAddress = data.roadAddress || data.address;
 
         // Geocoding
         if (isMapLoaded && (window as any).kakao && (window as any).kakao.maps) {
             (window as any).kakao.maps.load(() => {
                 const geocoder = new (window as any).kakao.maps.services.Geocoder();
-                geocoder.addressSearch(data.address, (result: any, status: any) => {
+                // Search using ONLY basic address
+                geocoder.addressSearch(basicAddress, (result: any, status: any) => {
                     if (status === (window as any).kakao.maps.services.Status.OK) {
                         const coords = new (window as any).kakao.maps.LatLng(result[0].y, result[0].x);
                         const latitude = coords.getLat();
@@ -82,17 +73,16 @@ const SignupPage = () => {
 
                         setFormData(prev => ({
                             ...prev,
-                            address: fullAddress,
+                            address: basicAddress, // Use basic address
                             latitude: latitude,
                             longitude: longitude
                         }));
                     } else {
-                        console.error("Geocoding failed. Status:", status);
-                        alert("주소의 위치 정보를 찾을 수 없습니다. (Kakao Maps API 오류)\n도메인 등록 여부나 API 키를 확인해주세요.");
-                        // Fallback: Reset to 0
+                        console.warn("Geocoding failed. Status:", status);
+                        // Graceful Fallback: No Alert, just set 0
                         setFormData(prev => ({
                             ...prev,
-                            address: fullAddress,
+                            address: basicAddress, // Use basic address even if map fails
                             latitude: 0,
                             longitude: 0
                         }));
@@ -100,11 +90,11 @@ const SignupPage = () => {
                 });
             });
         } else {
-            console.error("Kakao Maps SDK not ready");
-            alert("지도 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+            console.warn("Kakao Maps SDK not ready");
+            // Graceful Fallback: No Alert
             setFormData(prev => ({
                 ...prev,
-                address: fullAddress
+                address: basicAddress // Use basic address
             }));
         }
     };
@@ -129,15 +119,11 @@ const SignupPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validate Coordinates (Skip if map failed)
+        // TEMPORARY: Always use Seoul City Hall coordinates if missing (for testing)
+        // User requested to bypass coordinate validation
         let finalData = { ...formData };
-        if (!mapError && (formData.latitude === 0 || formData.longitude === 0)) {
-            alert("주소의 위치 정보(위도/경도)가 설정되지 않았습니다.\n주소를 다시 검색하거나, 올바른 주소를 선택해주세요.");
-            return;
-        }
-
-        // If map failed, use default coordinates (Seoul City Hall) to bypass backend validation
-        if (mapError && (formData.latitude === 0 || formData.longitude === 0)) {
+        if (finalData.latitude === 0 || finalData.longitude === 0) {
+            console.warn("Missing coordinates. Using Seoul City Hall fallback for testing.");
             finalData.latitude = 37.5665;
             finalData.longitude = 126.9780;
         }

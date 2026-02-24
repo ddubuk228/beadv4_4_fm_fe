@@ -2,12 +2,15 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { memberApi } from '../api/member';
 import { walletApi, type UserWalletResponseDto } from '../api/wallet';
-import { FaBox, FaExchangeAlt, FaStore } from 'react-icons/fa';
+import ProfileEditPage from './ProfileEditPage';
+
+type TabType = 'orders' | 'profile' | 'likes' | 'reviews' | 'wallet' | 'coupon' | 'donation';
 
 const MyPage = () => {
     const navigate = useNavigate();
     const [walletInfo, setWalletInfo] = useState<UserWalletResponseDto | null>(null);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<TabType>('orders'); // Default tab is order history
 
     const alertShown = useRef(false);
 
@@ -24,22 +27,17 @@ const MyPage = () => {
             }
 
             try {
-                // 1. Get User ID and seller status from /me
                 const meResponse = await memberApi.getMe();
                 if (meResponse.resultCode.startsWith('S-200') || meResponse.resultCode.startsWith('200')) {
                     const meData = meResponse.data;
                     let userInfoFromMe: any = null;
-                    console.log('DEBUG ME DATA:', meData); // Debug log
 
-                    // Check if response is Object (New) or Number (Legacy)
                     if (typeof meData === 'object' && meData !== null) {
                         userInfoFromMe = meData;
                     } else if (typeof meData === 'number') {
-                        // Handle legacy response where data is just userId
                         userInfoFromMe = { userId: meData };
                     }
 
-                    // Prepare default/fallback wallet data
                     let walletData = {
                         walletId: 0,
                         balance: 0,
@@ -56,12 +54,9 @@ const MyPage = () => {
 
                     try {
                         try {
-                            // 2. Try to get User Wallet Balance (safer API)
-                            // Using getBalance() to avoid potential serialization errors with getUserWallet()
                             const balanceResponse = await walletApi.getBalance();
                             if (balanceResponse.resultCode.startsWith('S-200') || balanceResponse.resultCode.startsWith('200')) {
                                 walletData.balance = balanceResponse.data;
-                                // walletId is not returned by getBalance, but it's okay, defaulting to 0
                             }
                         } catch (walletError) {
                             console.warn('Wallet balance fetch failed (using default 0):', walletError);
@@ -70,7 +65,6 @@ const MyPage = () => {
                         console.warn('Wallet info fetch failed (using default):', walletError);
                     }
 
-                    // Set state with safe data
                     setWalletInfo(walletData as any);
                 }
             } catch (e) {
@@ -94,134 +88,207 @@ const MyPage = () => {
 
     const { user, balance } = walletInfo;
 
+    const navItemStyle = (tabId: TabType) => ({
+        display: 'block',
+        padding: '0.75rem 1rem',
+        color: activeTab === tabId ? 'var(--primary-color)' : '#475569',
+        backgroundColor: activeTab === tabId ? '#f0fdf4' : 'transparent',
+        textDecoration: 'none',
+        fontWeight: activeTab === tabId ? 700 : 500,
+        borderRadius: '6px',
+        transition: 'all 0.2s',
+        cursor: 'pointer',
+        border: 'none',
+        width: '100%',
+        textAlign: 'left' as const
+    });
+
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'orders':
+                return (
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>주문 내역</h3>
+                        <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
+
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem' }}>
+                            <select className="form-select" style={{ width: '120px', padding: '0.6rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#475569', fontSize: '0.95rem' }}>
+                                <option>3개월</option>
+                                <option>6개월</option>
+                                <option>1년</option>
+                            </select>
+                            <div style={{ position: 'relative', flex: 1 }}>
+                                <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>🔍</span>
+                                <input
+                                    type="text"
+                                    placeholder="상품명으로 검색해보세요"
+                                    style={{ width: '100%', padding: '0.6rem 1rem 0.6rem 2.5rem', borderRadius: '6px', border: 'none', backgroundColor: '#f1f5f9', fontSize: '0.95rem', color: '#1e293b', outline: 'none' }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Order List Empty State */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: '#94a3b8' }}>
+                            <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>📄</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 500 }}>조회된 주문 내역이 없습니다.</div>
+                        </div>
+                    </div>
+                );
+            case 'profile':
+                return (
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
+                        <ProfileEditPage initialEmail={user.email} />
+                    </div>
+                );
+            case 'likes':
+                return (
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>찜 한 상품</h3>
+                        <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
+                        <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94a3b8' }}>찜 한 상품이 없습니다.</div>
+                    </div>
+                );
+            case 'reviews':
+                return (
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>내 리뷰</h3>
+                        <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
+                        <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94a3b8' }}>작성한 리뷰가 없습니다.</div>
+                    </div>
+                );
+            case 'wallet':
+                return (
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>예치금 관리</h3>
+                        <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
+                        <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--primary-color)', marginBottom: '1rem', textAlign: 'center', padding: '2rem 0' }}>
+                            {balance.toLocaleString()}원
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                            <Link to="/wallet/history" className="btn btn-primary" style={{ padding: '0.8rem 2rem', borderRadius: '50px' }}>내역 상세 보기</Link>
+                        </div>
+                    </div>
+                );
+            case 'donation':
+                return (
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>나의 기부 내역</h3>
+                        <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
+                        <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94a3b8' }}>이번 달 기부 내역이 없습니다.</div>
+                    </div>
+                );
+            case 'coupon':
+                return (
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>보유 쿠폰</h3>
+                        <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
+                        <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94a3b8' }}>보유 중인 쿠폰이 없습니다.</div>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
     return (
-        <div className="container" style={{ maxWidth: '900px', margin: '2rem auto', marginTop: '120px' }}>
-            <h1 style={{ marginBottom: '2rem', fontSize: '2rem', textAlign: 'left', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--primary-color)' }}>마이 페이지</h1>
+        <div style={{ backgroundColor: '#fafaf9', minHeight: '100vh', paddingTop: '140px', paddingBottom: '4rem' }}>
+            <div className="container" style={{ maxWidth: '1024px', margin: '0 auto', padding: '0 1rem' }}>
 
-            {/* 1. Profile Section - Horizontal Layout */}
-            <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem', padding: '1.75rem' }}>
-                <div style={{
-                    minWidth: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#f1f5f9',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', overflow: 'hidden',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
-                }}>
-                    {user.profileImage && user.profileImage !== 'default.png' ? (
-                        <img src={user.profileImage} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                        <span style={{ fontSize: '2rem' }}>👤</span>
-                    )}
-                </div>
-                <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-                        <h2 style={{ fontSize: '1.4rem', margin: 0, fontWeight: 700 }}>{user.nickname}</h2>
-                        <span style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem', borderRadius: '20px', backgroundColor: 'var(--primary-color)', color: 'white', fontWeight: 500 }}>Member</span>
-                    </div>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{user.email}</p>
-                    {/* Removed name display if it's redundant or user prefers nickname focus */}
-                </div>
-                <Link to="/profile/edit" className="btn btn-outline" style={{ fontSize: '0.9rem', padding: '0.5rem 1.2rem', borderRadius: '50px' }}>
-                    프로필 편집
-                </Link>
-            </div>
+                {/* 1. Top Section - 3 Metrics Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
 
-            {/* 2. Dashboard Status Grid - 3 Columns */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
-                {/* Wallet Info */}
-                <div className="card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', backgroundColor: '#fafaf9' }}>
-                    <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>적립된 기부금</h3>
-                    <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary-color)', marginBottom: '1rem' }}>
-                        {balance.toLocaleString()}<span style={{ fontSize: '1rem', fontWeight: 400, marginLeft: '0.2rem' }}>원</span>
+                    {/* 예치금 */}
+                    <div
+                        className="card"
+                        onClick={() => setActiveTab('wallet')}
+                        style={{ padding: '2rem 1.75rem', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: activeTab === 'wallet' ? '2px solid var(--primary-color)' : '2px solid transparent', borderRadius: '24px', cursor: 'pointer', transition: 'all 0.2s', minHeight: '160px' }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'auto' }}>
+                            <h3 style={{ fontSize: '1.1rem', margin: 0, fontWeight: 700, color: '#1e293b' }}>예치금</h3>
+                            <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem', color: 'var(--primary-color)', fontWeight: 600 }}>MossyCash</span>
+                        </div>
+                        <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#0f172a' }}>
+                            {balance.toLocaleString()}
+                        </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button className="btn btn-primary" onClick={() => alert('기부금 증명서 발급 기능은 준비 중입니다.')} style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem', borderRadius: '50px' }}>증명서</button>
-                        <Link to="/wallet/history" className="btn btn-outline" style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem', borderRadius: '50px', backgroundColor: 'white' }}>내역</Link>
+
+                    {/* 보유 쿠폰 */}
+                    <div
+                        className="card"
+                        onClick={() => setActiveTab('coupon')}
+                        style={{ padding: '2rem 1.75rem', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: activeTab === 'coupon' ? '2px solid var(--primary-color)' : '2px solid transparent', borderRadius: '24px', cursor: 'pointer', transition: 'all 0.2s', minHeight: '160px' }}
+                    >
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', margin: 0, marginBottom: 'auto' }}>보유 쿠폰</h3>
+                        <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#0f172a' }}>
+                            0<span style={{ fontSize: '1rem', fontWeight: 500, marginLeft: '4px' }}>개</span>
+                        </div>
+                    </div>
+
+                    {/* 이번달 기부금 */}
+                    <div
+                        className="card"
+                        onClick={() => setActiveTab('donation')}
+                        style={{ padding: '2rem 1.75rem', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: activeTab === 'donation' ? '2px solid var(--primary-color)' : '2px solid transparent', borderRadius: '24px', cursor: 'pointer', transition: 'all 0.2s', minHeight: '160px' }}
+                    >
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', margin: 0, marginBottom: 'auto' }}>이번달 기부금</h3>
+                        <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#0f172a' }}>
+                            0<span style={{ fontSize: '1rem', fontWeight: 500, marginLeft: '4px' }}>원</span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Order Status Summary */}
-                <div className="card" style={{ gridColumn: 'span 2', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <h3 style={{ fontSize: '1.1rem', margin: 0, fontWeight: 600 }}>주문 현황 <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 400, marginLeft: '0.5rem' }}>(최근 3개월)</span></h3>
-                        <Link to="/orders" style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textDecoration: 'none' }}>전체보기 ›</Link>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flex: 1, padding: '0 0.5rem' }}>
-                        {[
-                            { label: '주문접수', count: 0 },
-                            { label: '결제완료', count: 0 },
-                            { label: '배송준비', count: 0 },
-                            { label: '배송중', count: 0 },
-                            { label: '배송완료', count: 0 }
-                        ].map((status, idx) => (
-                            <div key={idx} style={{ textAlign: 'center', position: 'relative' }}>
-                                <div style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.25rem', color: status.count > 0 ? 'var(--primary-color)' : '#cbd5e1' }}>
-                                    {status.count}
+                {/* 2. Main 2-Column Section */}
+                <div style={{ display: 'flex', gap: '2rem' }}>
+
+                    {/* Left Sidebar (White Background) */}
+                    <aside style={{ width: '260px', flexShrink: 0 }}>
+                        <div className="card" style={{ backgroundColor: '#ffffff', padding: '1.5rem 0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: 'none', borderRadius: '12px', minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+
+                            {/* Profile Header */}
+                            <div style={{ padding: '0 1.5rem', marginBottom: '1.5rem', textAlign: 'left' }}>
+                                <div style={{ fontSize: '1rem', color: '#64748b', fontWeight: 500, marginBottom: '0.2rem' }}>반가워요!</div>
+                                <div style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: '1rem', color: '#1e293b' }}>{user.nickname || user.name}님</div>
+                                <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '0.5rem' }}>
+                                    <button onClick={() => setActiveTab('reviews')} style={{ fontSize: '0.85rem', color: activeTab === 'reviews' ? 'var(--primary-color)' : '#475569', backgroundColor: activeTab === 'reviews' ? '#f0fdf4' : '#f1f5f9', border: 'none', padding: '0.5rem 0.9rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>내 리뷰</button>
+                                    <button onClick={() => setActiveTab('profile')} style={{ fontSize: '0.85rem', color: activeTab === 'profile' ? 'var(--primary-color)' : '#475569', backgroundColor: activeTab === 'profile' ? '#f0fdf4' : '#f1f5f9', border: 'none', padding: '0.5rem 0.9rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>내 정보 설정</button>
                                 </div>
-                                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{status.label}</div>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
 
-            {/* 3. Menu List - Grid Layout for cleaner look */}
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', fontWeight: 700 }}>쇼핑 이용정보</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <Link to="/orders" className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textDecoration: 'none', color: 'inherit', transition: 'border-color 0.2s' }}>
-                    <div style={{ padding: '0.6rem', backgroundColor: '#f0fdf4', borderRadius: '50%', color: 'var(--primary-color)' }}>
-                        <FaBox size={18} />
-                    </div>
-                    <div>
-                        <div style={{ fontWeight: 600, fontSize: '1rem' }}>주문 목록</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>주문하신 상품 내역을 확인하세요</div>
-                    </div>
-                </Link>
+                            <hr style={{ border: 0, borderTop: '1px solid #e2e8f0', margin: '0 0 1rem 0' }} />
 
-                <Link to="/refunds" className="card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textDecoration: 'none', color: 'inherit', transition: 'border-color 0.2s' }}>
-                    <div style={{ padding: '0.6rem', backgroundColor: '#fff7ed', borderRadius: '50%', color: '#ea580c' }}>
-                        <FaExchangeAlt size={18} />
-                    </div>
-                    <div>
-                        <div style={{ fontWeight: 600, fontSize: '1rem' }}>취소 / 반품 / 교환</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>취소 및 반품 내역을 확인하세요</div>
-                    </div>
-                </Link>
+                            {/* Main Menus */}
+                            <nav style={{ display: 'flex', flexDirection: 'column', padding: '0 1rem', gap: '0.25rem', marginBottom: 'auto' }}>
+                                <button onClick={() => setActiveTab('orders')} style={navItemStyle('orders')}>
+                                    주문 내역
+                                </button>
+                                <button onClick={() => setActiveTab('likes')} style={navItemStyle('likes')}>
+                                    찜 한 상품
+                                </button>
+                            </nav>
 
-                <div className="card" style={{ gridColumn: 'span 2', marginTop: '0.5rem', padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ padding: '0.6rem', backgroundColor: '#fff', borderRadius: '50%', color: 'var(--primary-color)', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                            <FaStore size={22} />
+                            {/* Bottom Seller Menus */}
+                            <nav style={{ padding: '0 1rem', marginTop: '2rem' }}>
+                                {(user as any).sellerStatus === 'APPROVED' ? (
+                                    <Link to="/myshop" style={{ display: 'block', padding: '0.75rem 1rem', color: '#ffffff', textDecoration: 'none', fontWeight: 600, borderRadius: '50px', backgroundColor: 'var(--primary-color)', textAlign: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                        나의 상점 관리 (판매자)
+                                    </Link>
+                                ) : (user as any).sellerStatus === 'PENDING' ? (
+                                    <span style={{ display: 'block', padding: '0.75rem 1rem', color: '#94a3b8', textDecoration: 'none', fontWeight: 500, cursor: 'not-allowed', backgroundColor: '#f8fafc', borderRadius: '6px' }}>
+                                        판매자 승인 대기중
+                                    </span>
+                                ) : (
+                                    <Link to="/seller-request" style={{ display: 'block', padding: '0.75rem 1rem', color: '#475569', textDecoration: 'none', fontWeight: 500, borderRadius: '6px', transition: 'background-color 0.2s' }}>
+                                        판매자 신청
+                                    </Link>
+                                )}
+                            </nav>
                         </div>
-                        <div>
-                            <div style={{ fontWeight: 700, fontSize: '1rem', color: '#1e293b' }}>
-                                {(user as any).sellerStatus === 'APPROVED' ? '나의 상점 관리' : '판매자이신가요?'}
-                            </div>
-                            <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.1rem' }}>
-                                {(user as any).sellerStatus === 'APPROVED' ? '상품 등록 및 주문 관리를 시작해보세요!' : '판매자로 등록하고 나만의 상점을 오픈해보세요!'}
-                            </div>
-                        </div>
-                    </div>
-                    {(user as any).sellerStatus === 'PENDING' ? (
-                        <button className="btn" disabled style={{ padding: '0.75rem 1.5rem', borderRadius: '50px', fontSize: '0.95rem', backgroundColor: '#e2e8f0', color: '#94a3b8', cursor: 'not-allowed', border: 'none' }}>
-                            승인 대기중
-                        </button>
-                    ) : (user as any).sellerStatus === 'APPROVED' ? (
-                        <Link to="/myshop" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', borderRadius: '50px', fontSize: '0.95rem', backgroundColor: '#0f766e', border: 'none' }}>
-                            내 상점 가기
-                        </Link>
-                    ) : (
-                        <Link to="/seller-request" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', borderRadius: '50px', fontSize: '0.95rem' }}>
-                            판매자 신청하기
-                        </Link>
-                    )}
-                </div>
-            </div>
+                    </aside>
 
-            <div style={{ marginTop: '3rem', textAlign: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
-                <p style={{ fontSize: '0.9rem', color: '#94a3b8' }}>Mossy 고객센터 1588-0000 (평일 09:00~18:00)</p>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', fontSize: '0.85rem', color: '#cbd5e1' }}>
-                    <span>이용약관</span>
-                    <span>|</span>
-                    <span>개인정보처리방침</span>
+                    {/* Right Main Content */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        {renderContent()}
+                    </div>
                 </div>
             </div>
         </div>

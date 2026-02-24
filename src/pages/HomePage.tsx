@@ -77,20 +77,20 @@ const HomePage = () => {
     return (
         <div className="pb-0 bg-[var(--background-color)]">
             {/* 1. Hero Banner */}
-            <div className="relative min-h-[70vh] w-full flex flex-col justify-center items-center text-white text-center mb-20 bg-cover bg-center"
+            <div className="relative min-h-[70vh] w-full flex flex-col justify-center items-center text-white text-center mb-20 bg-cover bg-center pt-32"
                 style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1470058869958-2a77ade41c02?q=80&w=2070&auto=format&fit=crop)' }}>
 
                 {/* Overlay with gradient for better readability */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-[var(--background-color)]"></div>
 
-                <div className="relative z-10 w-full max-w-5xl px-6 transform translate-y-[-10%]">
+                <div className="relative z-10 w-full max-w-5xl px-6 transform">
                     <span className="inline-block py-1 px-3 border border-white/30 rounded-full text-sm font-medium tracking-widest mb-6 backdrop-blur-sm">PREMIUM ECO LIFESTYLE</span>
-                    <h1 className="text-7xl md:text-9xl font-serif mb-6 text-white drop-shadow-2xl font-bold tracking-tight">Mossy</h1>
+                    <h1 className="text-7xl md:text-9xl font-serif mb-6 !text-white drop-shadow-2xl font-bold tracking-tight">Mossy</h1>
                     <p className="text-2xl md:text-3xl font-light mb-16 opacity-90 max-w-2xl mx-auto leading-relaxed">자연을 닮은 현명한 소비,<br />지속 가능한 일상을 시작하세요.</p>
 
                     <div className="relative max-w-2xl mx-auto group">
-                        <div className="flex items-center bg-white/10 backdrop-blur-md rounded-full border border-white/20 p-2 shadow-2xl transition-all duration-300 focus-within:bg-white/20 focus-within:scale-105">
-                            <div className="pl-6 text-white/70">
+                        <div className="flex items-center bg-white/90 backdrop-blur-md rounded-full border border-white/20 p-2 shadow-2xl transition-all duration-300 focus-within:bg-white focus-within:scale-105">
+                            <div className="pl-6 text-slate-500">
                                 <FaSearch className="text-xl" />
                             </div>
                             <input
@@ -98,9 +98,9 @@ const HomePage = () => {
                                 placeholder="어떤 친환경 제품을 찾으시나요?"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-transparent border-none outline-none text-white px-4 py-4 text-lg placeholder:text-white/60 font-medium"
+                                className="flex-1 bg-transparent border-none outline-none text-slate-900 px-4 py-4 text-lg placeholder:text-slate-400 font-medium"
                             />
-                            <button className="bg-[var(--primary-color)] text-white px-8 py-3 rounded-full font-medium hover:bg-[var(--primary-hover)] transition-colors">
+                            <button className="bg-[var(--primary-color)] text-white px-8 py-3 rounded-full font-medium hover:bg-[var(--primary-hover)] transition-colors whitespace-nowrap">
                                 검색
                             </button>
                         </div>
@@ -206,7 +206,7 @@ const HomePage = () => {
 
                         {/* 5. Popular Search Terms */}
                         <div className="mb-32 text-center">
-                            <h3 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest mb-8">Trending Keywords</h3>
+                            <h3 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest" style={{ marginBottom: '60px' }}>Trending Keywords</h3>
                             <div className="flex flex-wrap justify-center gap-4">
                                 {['#텀블러', '#친환경주방', '#업사이클', '#대나무칫솔', '#플라스틱프리'].map(tag => (
                                     <span key={tag}

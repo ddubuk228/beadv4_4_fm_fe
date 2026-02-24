@@ -5,6 +5,7 @@ const client = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: true,
 });
 
 // Request interceptor to add token
@@ -41,9 +42,25 @@ client.interceptors.response.use(
             message: error.message
         });
 
-        if (error.response && error.response.status === 401) {
-            console.warn("Unauthorized error. Token cleared.");
+        const status = error.response?.status;
+        const errorMsg = error.response?.data?.msg || error.response?.data?.message || error.response?.data || error.message || '';
+
+        // 게이트웨이나 멤버 서버가 꺼져있어서 Network Error가 났을 때
+        if (!error.response) {
+            console.error("Network Error: 서버에 연결할 수 없습니다.");
+            return Promise.reject(error);
+        }
+
+        const isExpired = typeof errorMsg === 'string' && (errorMsg.includes('JWT expired') || errorMsg.includes('토큰'));
+
+        // 401 Unauthorized 또는 명시적인 토큰 만료 메시지만 로그아웃 처리
+        // 403 Forbidden (권한 없음)일 때는 단순히 에러만 반환하고 로그아웃시키지 않음
+        if (status === 401 || (status !== 403 && isExpired)) {
+            console.warn("Unauthorized error or Token Expired. Token cleared.");
             localStorage.removeItem('accessToken');
+            localStorage.removeItem('nickname');
+            alert('인증이 만료되었습니다. 다시 로그인해주세요.');
+            window.location.href = '/login';
         }
         return Promise.reject(error);
     }

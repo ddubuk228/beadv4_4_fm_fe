@@ -161,10 +161,10 @@ const CartPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[var(--background-color)] pt-32 pb-20">
+        <div className="min-h-screen bg-[var(--background-color)] pb-20" style={{ paddingTop: '140px' }}>
             <div className="container mx-auto px-4 max-w-5xl">
-                <h1 className="text-4xl font-serif font-bold mb-12 text-[var(--text-main)] text-center">
-                    Shopping Cart
+                <h1 className="text-4xl font-serif font-bold text-[var(--text-main)]" style={{ marginBottom: '50px' }}>
+                    장바구니
                 </h1>
 
                 {cart && cart.items && cart.items.length > 0 ? (
@@ -256,9 +256,9 @@ const CartPage = () => {
                 ) : (
                     <div className="text-center py-32 bg-white rounded-[var(--radius-lg)] border border-[var(--border-color)] shadow-sm">
                         <div className="text-6xl mb-6 opacity-20">🛒</div>
-                        <p className="text-2xl font-serif text-[var(--text-muted)] mb-8">Your cart is currently empty.</p>
+                        <p className="text-xl font-medium text-[var(--text-muted)] mb-8">장바구니가 비어있습니다.</p>
                         <button onClick={() => navigate('/market')} className="btn btn-primary px-10 py-3 text-lg">
-                            Start Shopping
+                            쇼핑하러 가기
                         </button>
                     </div>
                 )}

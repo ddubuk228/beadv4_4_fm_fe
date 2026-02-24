@@ -35,13 +35,11 @@ export const authApi = {
         return response.data;
     },
     signup: async (data: SignupRequest) => {
-        const response = await client.post<RsData<number>>('/auth/signup', data); // Returns userId
+        const response = await client.post<RsData<number>>('/users/signup', data); // Returns userId
         return response.data;
     },
-    logout: async (refreshToken: string) => {
-        const response = await client.post<RsData<void>>('/auth/logout', null, {
-            headers: { RefreshToken: refreshToken }
-        });
+    logout: async () => {
+        const response = await client.post<RsData<void>>('/auth/logout', null);
         return response.data;
     }
 };

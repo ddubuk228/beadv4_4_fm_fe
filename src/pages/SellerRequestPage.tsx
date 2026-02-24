@@ -62,34 +62,35 @@ const SellerRequestPage = () => {
     };
 
     const handleAddressComplete = (data: any) => {
-        let fullAddress = data.address;
-        let extraAddress = '';
-
-        if (data.addressType === 'R') {
-            if (data.bname !== '') extraAddress += data.bname;
-            if (data.buildingName !== '') extraAddress += (extraAddress !== '' ? `, ${data.buildingName}` : data.buildingName);
-            fullAddress += (extraAddress !== '' ? ` (${extraAddress})` : '');
-        }
+        // User requested ONLY basic address
+        const basicAddress = data.roadAddress || data.address;
 
         if (isMapLoaded && (window as any).kakao && (window as any).kakao.maps) {
             const geocoder = new (window as any).kakao.maps.services.Geocoder();
-            geocoder.addressSearch(data.address, (result: any, status: any) => {
+            // Search using ONLY basic address
+            geocoder.addressSearch(basicAddress, (result: any, status: any) => {
                 if (status === (window as any).kakao.maps.services.Status.OK) {
                     const coords = new (window as any).kakao.maps.LatLng(result[0].y, result[0].x);
                     setFormData(prev => ({
                         ...prev,
-                        address1: fullAddress,
+                        address1: basicAddress, // Use basic address
                         latitude: coords.getLat(),
                         longitude: coords.getLng()
                     }));
                 } else {
-                    alert("주소의 위치 정보를 찾을 수 없습니다. (Kakao Maps API 오류)");
-                    setFormData(prev => ({ ...prev, address1: fullAddress, latitude: 0, longitude: 0 }));
+                    // Graceful Fallback: No Alert
+                    console.warn("Geocoding failed or ZERO_RESULT");
+                    setFormData(prev => ({
+                        ...prev,
+                        address1: basicAddress,
+                        latitude: 0,
+                        longitude: 0
+                    }));
                 }
             });
         } else {
             // Map failed but address text is valid
-            setFormData(prev => ({ ...prev, address1: fullAddress }));
+            setFormData(prev => ({ ...prev, address1: basicAddress }));
         }
     };
 
@@ -109,6 +110,10 @@ const SellerRequestPage = () => {
         e.preventDefault();
 
         let finalData = { ...formData };
+
+        if (finalData.sellerType === 'INDIVIDUAL') {
+            (finalData as any).businessNum = null;
+        }
 
         // Manual Fallback for Map Error
         if (mapError && (finalData.latitude === 0 || finalData.longitude === 0)) {
@@ -130,8 +135,8 @@ const SellerRequestPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '600px', margin: '4rem auto', marginTop: '140px' }}>
-            <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>판매자 신청</h1>
+        <div style={{ maxWidth: '600px', margin: '0 auto', paddingTop: '140px', paddingBottom: '4rem' }}>
+            <h1 className="text-4xl font-serif font-bold text-primary-color text-center" style={{ marginBottom: '50px' }}>판매자 신청</h1>
 
             <div className="card">
                 <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
@@ -146,7 +151,7 @@ const SellerRequestPage = () => {
                             style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'white', appearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right .7em top 50%', backgroundSize: '.65em auto' }}
                         >
                             <option value="INDIVIDUAL">개인 판매자 (INDIVIDUAL)</option>
-                            <option value="BUSINESS">사업자 판매자 (BUSINESS)</option>
+                            <option value="BUSINESS">법인 판매자 (BUSINESS)</option>
                         </select>
                     </div>
 
@@ -155,10 +160,12 @@ const SellerRequestPage = () => {
                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>상호명 (Store Name)</label>
                         <input name="storeName" value={formData.storeName} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
                     </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>사업자 등록번호</label>
-                        <input name="businessNum" value={formData.businessNum} onChange={handleChange} required placeholder="000-00-00000" style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
-                    </div>
+                    {formData.sellerType === 'BUSINESS' && (
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>사업자 등록번호</label>
+                            <input name="businessNum" value={formData.businessNum} onChange={handleChange} required placeholder="000-00-00000" style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
+                        </div>
+                    )}
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>대표자명</label>
                         <input name="representativeName" value={formData.representativeName} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
@@ -203,7 +210,7 @@ const SellerRequestPage = () => {
             <Modal
                 isOpen={showSuccessModal}
                 title="신청 완료"
-                message="판매자 신청이 성공적으로 접수되었습니다.\n관리자 승인 후 판매 활동이 가능합니다."
+                message="관리자 승인 후 판매 활동이 가능합니다."
                 onConfirm={() => {
                     setShowSuccessModal(false);
                     navigate('/mypage');
