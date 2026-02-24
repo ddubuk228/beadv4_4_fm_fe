@@ -119,7 +119,7 @@ const HomePage = () => {
                         {searchResultProducts.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                                 {searchResultProducts.map(product => (
-                                    <ProductCard key={product.productId} product={product} onAddToCart={addToCart} />
+                                    <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
                                 ))}
                             </div>
                         ) : (
@@ -178,7 +178,7 @@ const HomePage = () => {
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                                     {products.slice(0, 8).map(product => (
-                                        <ProductCard key={product.productId} product={product} onAddToCart={addToCart} />
+                                        <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
                                     ))}
                                 </div>
                             )}

@@ -17,6 +17,18 @@ const CartPage = () => {
             }
         } catch (err: any) {
             console.error("Failed to fetch cart", err);
+
+            // 404 means the cart hasn't been created yet / is completely empty
+            if (err.response?.status === 404 || err.response?.data?.errorCode === 'CART_NOT_FOUND') {
+                setCart({
+                    id: 0,
+                    userId: 0,
+                    items: [],
+                    totalPrice: 0
+                } as any);
+                return;
+            }
+
             if (err.message === "로그인이 필요합니다." || err.response?.status === 401) {
                 alert("로그인이 필요합니다.");
                 navigate('/login');

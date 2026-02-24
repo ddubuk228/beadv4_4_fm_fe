@@ -66,7 +66,7 @@ const ProductListPage = () => {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                         {products.map((product, index) => (
-                            <div key={product.productId} className="animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+                            <div key={product.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
                                 <ProductCard
                                     product={product}
                                     onAddToCart={addToCart}
