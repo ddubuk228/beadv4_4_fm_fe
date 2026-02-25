@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { orderApi, type OrderListSellerResponse } from '../../../api/order';
 
 const SellerOrderPage = () => {
@@ -27,16 +28,36 @@ const SellerOrderPage = () => {
         fetchOrders(page);
     }, [page]);
 
+    const navigate = useNavigate();
+
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto', fontFamily: '"Noto Sans KR", sans-serif' }}>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1.5rem' }}>
-                주문 관리
-            </h1>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e293b' }}>
+                    주문 관리
+                </h1>
+            </div>
+
+            {/* Top Dashboard Banner Area */}
+            <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '2rem', marginBottom: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', display: 'flex', gap: '2rem' }}>
+                <div style={{ flex: 1, backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ color: '#64748b', fontWeight: '600', marginBottom: '0.5rem' }}>전체 주문 건수</div>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b' }}>{orders.length}</div>
+                </div>
+                <div style={{ flex: 1, backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ color: '#3b82f6', fontWeight: '600', marginBottom: '0.5rem' }}>결제 완료</div>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1d4ed8' }}>{orders.filter(o => o.state === 'PAYMENT_COMPLETED' || o.state === 'ORDER_COMPLETED').length}</div>
+                </div>
+                <div style={{ flex: 1, backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ color: '#ef4444', fontWeight: '600', marginBottom: '0.5rem' }}>취소/환불</div>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#b91c1c' }}>{orders.filter(o => o.state === 'CANCEL_COMPLETED' || o.state === 'REFUND_COMPLETED').length}</div>
+                </div>
+            </div>
 
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden' }}>
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 2fr 1fr 1fr 1fr 1.5fr',
+                    gridTemplateColumns: '1fr 2fr 1fr 1fr 1.5fr 1fr',
                     borderBottom: '1px solid #e2e8f0',
                     padding: '1rem 1.5rem',
                     fontSize: '0.9rem',
@@ -45,9 +66,9 @@ const SellerOrderPage = () => {
                     backgroundColor: '#f8fafc'
                 }}>
                     <div>상태</div>
-                    <div>상품 ID </div>
+                    <div>주문상세번호 / 상품 ID </div>
                     <div>수량</div>
-                    <div>주문 금액</div>
+                    <div>총 주문 금액</div>
                     <div>주문일시</div>
                     <div>관리</div>
                 </div>
@@ -63,7 +84,7 @@ const SellerOrderPage = () => {
                     orders.map(order => (
                         <div key={order.orderDetailId} style={{
                             display: 'grid',
-                            gridTemplateColumns: '1fr 2fr 1fr 1fr 1fr 1.5fr',
+                            gridTemplateColumns: '1fr 2fr 1fr 1fr 1.5fr 1fr',
                             borderBottom: '1px solid #f1f5f9',
                             padding: '1rem 1.5rem',
                             fontSize: '0.95rem',
@@ -77,31 +98,32 @@ const SellerOrderPage = () => {
                             <div>
                                 <span style={{
                                     padding: '0.2rem 0.6rem',
-                                    backgroundColor: '#e0f2fe',
-                                    color: '#0369a1',
+                                    backgroundColor: order.state.includes('CANCEL') || order.state.includes('REFUND') ? '#fef2f2' : '#e0f2fe',
+                                    color: order.state.includes('CANCEL') || order.state.includes('REFUND') ? '#ef4444' : '#0369a1',
                                     borderRadius: '12px',
                                     fontSize: '0.8rem',
                                     fontWeight: 'bold'
                                 }}>
-                                    {order.state}
+                                    {order.state.replace('_COMPLETED', '').replace('PAYMENT', '결제완료').replace('ORDER', '주문완료').replace('CANCEL', '취소').replace('REFUND', '환불')}
                                 </span>
                             </div>
                             <div>
-                                <div style={{ fontWeight: 600 }}>상품 ID: {order.productId}</div>
+                                <div style={{ fontWeight: 600 }}>주문번호: {order.orderDetailId}</div>
                                 <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.2rem' }}>
-                                    상세 주문번호: {order.orderDetailId}
+                                    상품 ID: {order.productId}
                                 </div>
                             </div>
-                            <div>{order.quantity} 개</div>
-                            <div style={{ fontWeight: 'bold', color: '#ef4444' }}>
+                            <div style={{ fontWeight: '500' }}>{order.quantity} 개</div>
+                            <div style={{ fontWeight: 'bold', color: '#1e293b' }}>
                                 {order.orderPrice.toLocaleString()}원
                             </div>
                             <div style={{ fontSize: '0.85rem', color: '#475569' }}>
-                                {new Date(order.createdAt).toLocaleDateString()}
+                                <div>{new Date(order.createdAt).toLocaleDateString()}</div>
+                                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{new Date(order.createdAt).toLocaleTimeString()}</div>
                             </div>
                             <div>
                                 <button
-                                    onClick={() => alert('주문 상세 내역 이동 또는 변경 팝업 연결')}
+                                    onClick={() => navigate(`/myshop/orders/${order.orderDetailId}`)}
                                     style={{
                                         padding: '0.4rem 0.8rem',
                                         backgroundColor: 'transparent',
