@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/auth/LoginPage';
@@ -22,6 +23,34 @@ import SellerDashboardPage from './pages/member/seller/SellerDashboardPage';
 import SellerOrderDetailPage from './pages/member/seller/SellerOrderDetailPage';
 
 function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const path = location.pathname;
+
+    let title = 'Mossy';
+    if (path === '/') title = 'Mossy | 홈';
+    else if (path.startsWith('/login')) title = 'Mossy | 로그인';
+    else if (path.startsWith('/signup/complete')) title = 'Mossy | 회원가입 완료';
+    else if (path.startsWith('/signup')) title = 'Mossy | 회원가입';
+    else if (path.startsWith('/market/')) title = 'Mossy | 상품 상세';
+    else if (path.startsWith('/market')) title = 'Mossy | 마켓';
+    else if (path.startsWith('/cart')) title = 'Mossy | 장바구니';
+    else if (path.startsWith('/mypage')) title = 'Mossy | 마이페이지';
+    else if (path.startsWith('/profile/edit')) title = 'Mossy | 프로필 수정';
+    else if (path.startsWith('/admin')) title = 'Mossy | 관리자';
+    else if (path.startsWith('/orders')) title = 'Mossy | 주문내역';
+    else if (path.startsWith('/wallet')) title = 'Mossy | 지갑';
+    else if (path.startsWith('/seller-request')) title = 'Mossy | 판매자 신청';
+    else if (path.startsWith('/payment/success')) title = 'Mossy | 결제 완료';
+    else if (path.startsWith('/payment/fail')) title = 'Mossy | 결제 실패';
+    else if (path.startsWith('/auth/callback')) title = 'Mossy | 로그인 처리중';
+    else if (path.startsWith('/myshop/orders/')) title = 'Mossy | 판매자 주문상세';
+    else if (path.startsWith('/myshop')) title = 'Mossy | 내 상점';
+
+    document.title = title;
+  }, [location.pathname]);
+
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
