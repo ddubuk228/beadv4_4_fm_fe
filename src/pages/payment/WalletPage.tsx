@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { walletApi, type UserCashLog } from '../api/wallet';
-import { Card } from '../components/Card';
-import { Button } from '../components/Button';
+import { walletApi, type UserCashLog } from '../../api/wallet';
+import { Card } from '../../components/Card';
+import { Button } from '../../components/Button';
 
 const WalletPage = () => {
     const navigate = useNavigate();

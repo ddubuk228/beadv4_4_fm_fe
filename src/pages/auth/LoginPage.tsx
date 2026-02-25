@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { authApi } from '../api/auth';
-import { getRoleFromToken } from '../utils/auth';
+import { authApi } from '../../api/auth';
+import { getRoleFromToken } from '../../utils/auth';
 
 const LoginPage = () => {
     const navigate = useNavigate();

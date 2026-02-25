@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminApi, type SellerRequestItem } from '../api/admin';
-import { authApi } from '../api/auth';
-import Modal from '../components/Modal';
+import { adminApi, type SellerRequestItem } from '../../../api/admin';
+import { authApi } from '../../../api/auth';
+import Modal from '../../../components/Modal';
 
 const AdminPage = () => {
     const [requests, setRequests] = useState<SellerRequestItem[]>([]);

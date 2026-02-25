@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { orderApi, type OrderResponse, type OrderDetailResponse } from '../api/order';
-import { paymentApi, type PaymentResponse } from '../api/payment';
+import { orderApi, type OrderResponse, type OrderDetailResponse } from '../../api/order';
+import { paymentApi, type PaymentResponse } from '../../api/payment';
 
 const OrdersPage = () => {
     const navigate = useNavigate();

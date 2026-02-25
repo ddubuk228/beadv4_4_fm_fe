@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDaumPostcodePopup } from 'react-daum-postcode';
-import { memberApi, type SellerRequestCreateRequest } from '../api/member';
-import Modal from '../components/Modal';
+import { memberApi, type SellerRequestCreateRequest } from '../../../api/member';
+import Modal from '../../../components/Modal';
 import { FaPen } from 'react-icons/fa';
-import { getProfileImageUrl } from '../utils/image';
+import { getProfileImageUrl } from '../../../utils/image';
 
 const SellerRequestPage = () => {
     const navigate = useNavigate();

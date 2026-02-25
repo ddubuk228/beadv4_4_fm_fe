@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { marketApi, type ProductResponse } from '../api/market';
-import { cartApi } from '../api/cart';
-import { ProductCard } from '../components/ProductCard';
+import { marketApi, type ProductResponse } from '../../api/market';
+import { cartApi } from '../../api/cart';
+import { ProductCard } from '../../components/ProductCard';
 
 const ProductListPage = () => {
     const [products, setProducts] = useState<ProductResponse[]>([]);

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { marketApi, type ProductResponse } from '../api/market';
-import { cartApi } from '../api/cart';
-import { Button } from '../components/Button';
+import { marketApi, type ProductResponse } from '../../api/market';
+import { cartApi } from '../../api/cart';
+import { Button } from '../../components/Button';
 import { FaLeaf, FaShieldAlt, FaTruck } from 'react-icons/fa';
 
 const ProductDetailPage = () => {
@@ -79,7 +79,7 @@ const ProductDetailPage = () => {
                 items: orderItems
             };
 
-            const orderResponse = await import('../api/order').then(({ orderApi }) => orderApi.createOrder(orderRequest));
+            const orderResponse = await import('../../api/order').then(({ orderApi }) => orderApi.createOrder(orderRequest));
 
             if (!orderResponse.data || !orderResponse.data.orderId) {
                 throw new Error('주문 생성에 실패했습니다.');
@@ -90,7 +90,7 @@ const ProductDetailPage = () => {
 
             if (type === 'TOSS') {
                 const { loadTossPayments } = await import('@tosspayments/payment-sdk');
-                const { TOSS_CLIENT_KEY } = await import('../api/payment');
+                const { TOSS_CLIENT_KEY } = await import('../../api/payment');
                 const tossPayments = await loadTossPayments(TOSS_CLIENT_KEY);
 
                 await tossPayments.requestPayment('카드', {

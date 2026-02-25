@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaSearch, FaLeaf, FaRecycle, FaTree, FaWineBottle, FaShoppingBag, FaArrowRight } from 'react-icons/fa';
-import { marketApi, type ProductResponse } from '../api/market';
-import { cartApi } from '../api/cart';
-import { ProductCard } from '../components/ProductCard';
-import { Button } from '../components/Button';
+import { marketApi, type ProductResponse } from '../../api/market';
+import { cartApi } from '../../api/cart';
+import { ProductCard } from '../../components/ProductCard';
+import { Button } from '../../components/Button';
 
 const HomePage = () => {
     const [searchTerm, setSearchTerm] = useState('');

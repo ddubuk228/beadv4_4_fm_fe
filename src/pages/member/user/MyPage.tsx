@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { FaPen } from 'react-icons/fa';
 import { memberApi } from '../../../api/member';
 import { walletApi, type UserWalletResponseDto } from '../../../api/wallet';
-import ProfileEditPage from './ProfileEditPage';
+import ProfileEditPage from '../../product/ProfileEditPage';
 import { getProfileImageUrl, isDefaultProfile } from '../../../utils/image';
 import { couponApi, type UserCouponResponse } from '../../../api/coupon';
 

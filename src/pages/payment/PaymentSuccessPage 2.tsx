@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { paymentApi } from '../api/payment';
+import { paymentApi } from '../../api/payment';
 
 const PaymentSuccessPage = () => {
     const navigate = useNavigate();

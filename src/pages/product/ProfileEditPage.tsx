@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { memberApi, type MeResponse } from '../api/member';
+import { memberApi, type MeResponse } from '../../api/member';
 import { useDaumPostcodePopup } from 'react-daum-postcode';
-import Modal from '../components/Modal';
+import Modal from '../../components/Modal';
 
 interface ProfileEditPageProps {
     initialEmail?: string;

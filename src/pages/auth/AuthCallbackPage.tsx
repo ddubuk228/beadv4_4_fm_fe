@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getRoleFromToken } from '../utils/auth';
+import { getRoleFromToken } from '../../utils/auth';
 
 const AuthCallbackPage = () => {
     const navigate = useNavigate();
