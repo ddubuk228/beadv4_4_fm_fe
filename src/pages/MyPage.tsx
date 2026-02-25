@@ -1,8 +1,10 @@
-import { useEffect, useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { FaPen } from 'react-icons/fa';
 import { memberApi } from '../api/member';
 import { walletApi, type UserWalletResponseDto } from '../api/wallet';
 import ProfileEditPage from './ProfileEditPage';
+import { getProfileImageUrl, isDefaultProfile } from '../utils/image';
 import { couponApi, type UserCouponResponse } from '../api/coupon';
 
 type TabType = 'orders' | 'profile' | 'likes' | 'reviews' | 'wallet' | 'coupon' | 'donation';
@@ -14,11 +16,13 @@ const MyPage = () => {
     const [totalCoupons, setTotalCoupons] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabType>('orders'); // Default tab is order history
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [couponStatusFilter, setCouponStatusFilter] = useState<'ALL' | 'UNUSED' | 'USED' | 'EXPIRED'>('ALL');
     const [couponPage, setCouponPage] = useState<number>(0);
     const [couponTotalPages, setCouponTotalPages] = useState<number>(0);
 
     const alertShown = useRef(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const fetchInfo = async () => {
@@ -134,6 +138,38 @@ const MyPage = () => {
         width: '100%',
         textAlign: 'left' as const
     });
+
+    const handleProfileImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingImage(true);
+        try {
+            const res = await memberApi.changeProfileImage(file);
+            if (res.resultCode.startsWith('S-')) {
+                // Update local state to reflect new image instantly
+                setWalletInfo(prev => {
+                    if (!prev) return null;
+                    return {
+                        ...prev,
+                        user: {
+                            ...prev.user,
+                            profileImage: res.data // Use URL from backend
+                        }
+                    };
+                });
+                alert('프로필 이미지가 변경되었습니다.');
+            }
+        } catch (error) {
+            console.error('Failed to update profile image', error);
+            alert('프로필 이미지 변경 중 오류가 발생했습니다.');
+        } finally {
+            setIsUploadingImage(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = ''; // Reset input
+            }
+        }
+    };
 
     const renderContent = () => {
         switch (activeTab) {
@@ -312,7 +348,7 @@ const MyPage = () => {
                             <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem', color: 'var(--primary-color)', fontWeight: 600 }}>MossyCash</span>
                         </div>
                         <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#0f172a' }}>
-                            {balance.toLocaleString()}
+                            {balance.toLocaleString()}<span style={{ fontSize: '1rem', fontWeight: 500, marginLeft: '4px' }}>원</span>
                         </div>
                     </div>
 
@@ -350,8 +386,48 @@ const MyPage = () => {
 
                             {/* Profile Header */}
                             <div style={{ padding: '0 1.5rem', marginBottom: '1.5rem', textAlign: 'left' }}>
-                                <div style={{ fontSize: '1rem', color: '#64748b', fontWeight: 500, marginBottom: '0.2rem' }}>반가워요!</div>
-                                <div style={{ fontWeight: 700, fontSize: '1.25rem', marginBottom: '1rem', color: '#1e293b' }}>{user.nickname || user.name}님</div>
+                                <div style={{ fontSize: '1rem', color: '#64748b', fontWeight: 500, marginBottom: '0.5rem' }}>반가워요!</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                                    <div
+                                        onClick={() => fileInputRef.current?.click()}
+                                        style={{ position: 'relative', cursor: isUploadingImage ? 'not-allowed' : 'pointer', opacity: isUploadingImage ? 0.5 : 1 }}
+                                        title="프로필 이미지 변경"
+                                    >
+                                        <img
+                                            src={getProfileImageUrl(user.profileImage)}
+                                            alt="Profile"
+                                            style={{
+                                                width: '48px',
+                                                height: '48px',
+                                                borderRadius: isDefaultProfile(user.profileImage) ? '0' : '50%',
+                                                objectFit: isDefaultProfile(user.profileImage) ? 'contain' : 'cover'
+                                            }}
+                                        />
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleProfileImageChange}
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                        />
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: '-4px',
+                                            right: '-4px',
+                                            backgroundColor: '#ffffff',
+                                            borderRadius: '50%',
+                                            width: '18px',
+                                            height: '18px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                                        }}>
+                                            <FaPen size={10} color="#64748b" />
+                                        </div>
+                                    </div>
+                                    <div style={{ fontWeight: 700, fontSize: '1.25rem', color: '#1e293b' }}>{user.nickname || user.name}님</div>
+                                </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '0.5rem' }}>
                                     <button onClick={() => setActiveTab('reviews')} style={{ fontSize: '0.85rem', color: activeTab === 'reviews' ? 'var(--primary-color)' : '#475569', backgroundColor: activeTab === 'reviews' ? '#f0fdf4' : '#f1f5f9', border: 'none', padding: '0.5rem 0.9rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>내 리뷰</button>
                                     <button onClick={() => setActiveTab('profile')} style={{ fontSize: '0.85rem', color: activeTab === 'profile' ? 'var(--primary-color)' : '#475569', backgroundColor: activeTab === 'profile' ? '#f0fdf4' : '#f1f5f9', border: 'none', padding: '0.5rem 0.9rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>내 정보 설정</button>

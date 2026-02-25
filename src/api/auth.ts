@@ -34,8 +34,14 @@ export const authApi = {
         const response = await client.post<RsData<LoginResponse>>('/auth/login', data);
         return response.data;
     },
-    signup: async (data: SignupRequest) => {
-        const response = await client.post<RsData<number>>('/users/signup', data); // Returns userId
+    signup: async (data: SignupRequest, profileImage?: File | null) => {
+        const formData = new FormData();
+        formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+        if (profileImage) {
+            formData.append('profileImage', profileImage);
+        }
+
+        const response = await client.post<RsData<number>>('/users/signup', formData); // Returns userId
         return response.data;
     },
     logout: async () => {

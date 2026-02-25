@@ -1,5 +1,6 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './Navbar';
+import { getRoleFromToken } from '../../utils/auth';
 
 const Layout = () => {
     const location = useLocation();
@@ -7,6 +8,11 @@ const Layout = () => {
 
     if (isAdminMode) {
         return <Outlet />;
+    }
+
+    const role = getRoleFromToken();
+    if (role === 'ROLE_PENDING' && !location.pathname.startsWith('/signup/complete') && !location.pathname.startsWith('/auth/callback')) {
+        return <Navigate to="/signup/complete" replace />;
     }
 
     return (

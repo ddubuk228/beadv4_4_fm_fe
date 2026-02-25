@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDaumPostcodePopup } from 'react-daum-postcode';
 import Modal from '../components/Modal';
 import { authApi } from '../api/auth';
+import { getProfileImageUrl } from '../utils/image';
 
 const SignupPage = () => {
     const navigate = useNavigate();
@@ -21,6 +22,12 @@ const SignupPage = () => {
     });
     const [error, setError] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [errorModalMessage, setErrorModalMessage] = useState('');
+
+    // Profile Image state
+    const [profileImage, setProfileImage] = useState<File | null>(null);
+    const [profileImagePreview, setProfileImagePreview] = useState<string>('');
     // State for Map SDK
     const [isMapLoaded, setIsMapLoaded] = useState(false);
     const [mapError, setMapError] = useState(false);
@@ -102,6 +109,14 @@ const SignupPage = () => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setProfileImage(file);
+            setProfileImagePreview(URL.createObjectURL(file));
+        }
+    };
     const handleSearchAddress = () => {
         if (mapError) {
             // If map is broken, manual input is enabled.
@@ -129,16 +144,27 @@ const SignupPage = () => {
         }
 
         try {
-            const response = await authApi.signup(finalData);
-            // Backend returns "S-200" for success
-            if (response.resultCode.startsWith('S-200') || response.resultCode.startsWith('200')) {
+            const response = await authApi.signup(finalData, profileImage);
+            // Backend returns "S-201" or "201" for signup success
+            if (
+                response.resultCode.startsWith('S-') ||
+                response.resultCode.startsWith('20')
+            ) {
                 setShowSuccessModal(true);
             } else {
                 setError('회원가입 실패: ' + response.msg);
             }
         } catch (err: any) {
             console.error(err);
-            setError('회원가입 중 오류가 발생했습니다: ' + (err.response?.data?.msg || err.message));
+            const errorMessage = err.response?.data?.msg || err.message;
+            if (err.response?.status === 409) {
+                setErrorModalMessage('회원가입 중 오류가 발생했습니다: ' + errorMessage);
+                setShowErrorModal(true);
+            } else {
+                setErrorModalMessage('회원가입 중 오류가 발생했습니다: ' + errorMessage);
+                setShowErrorModal(true);
+            }
+            setError('회원가입 중 오류가 발생했습니다: ' + errorMessage);
         }
     };
 
@@ -148,6 +174,36 @@ const SignupPage = () => {
 
             <div className="card">
                 <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1rem' }}>
+                        <div
+                            style={{
+                                width: '100px',
+                                height: '100px',
+                                backgroundColor: 'transparent',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                position: 'relative'
+                            }}
+                            onClick={() => document.getElementById('profileImageInput')?.click()}
+                        >
+                            {profileImagePreview ? (
+                                <img src={profileImagePreview} alt="Profile Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                            ) : (
+                                <img src={getProfileImageUrl(null)} alt="Default Profile" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            )}
+                        </div>
+                        <input
+                            id="profileImageInput"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            style={{ display: 'none' }}
+                        />
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>프로필 이미지 (선택)</span>
+                    </div>
+
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>이메일</label>
                         <input name="email" type="email" value={formData.email} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
@@ -199,6 +255,12 @@ const SignupPage = () => {
                     setShowSuccessModal(false);
                     navigate('/login', { replace: true });
                 }}
+            />
+            <Modal
+                isOpen={showErrorModal}
+                title="회원가입 실패"
+                message={errorModalMessage}
+                onConfirm={() => setShowErrorModal(false)}
             />
         </div >
     );

@@ -61,8 +61,13 @@ export const memberApi = {
         const response = await client.get<RsData<number | MeResponse>>('/users/me');
         return response.data;
     },
-    requestSeller: async (data: SellerRequestCreateRequest) => {
-        const response = await client.post<RsData<number>>('/users/seller-request', data);
+    requestSeller: async (data: SellerRequestCreateRequest, profileImage?: File | null) => {
+        const formData = new FormData();
+        formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+        if (profileImage) {
+            formData.append('profileImage', profileImage);
+        }
+        const response = await client.post<RsData<number>>('/users/seller-request', formData);
         return response.data;
     },
     updateProfile: async (data: ProfileUpdateRequest) => {
@@ -84,5 +89,11 @@ export const memberApi = {
     setPassword: async (data: any) => {
         const response = await client.post<RsData<void>>('/users/set-password', data);
         return response.data;
+    },
+    changeProfileImage: async (file: File) => {
+        const formData = new FormData();
+        formData.append('profileImage', file);
+        const response = await client.patch<RsData<string>>('/users/profile-image', formData);
+        return response.data; // Will return the new image URL in data
     }
 };

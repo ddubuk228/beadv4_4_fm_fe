@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useDaumPostcodePopup } from 'react-daum-postcode';
 import { memberApi } from '../api/member';
 import Modal from '../components/Modal';
+import { FaPen } from 'react-icons/fa';
+import { getProfileImageUrl } from '../utils/image';
 
 const SignupCompletePage = () => {
     const navigate = useNavigate();
@@ -16,6 +18,11 @@ const SignupCompletePage = () => {
         latitude: 0,
         longitude: 0,
     });
+
+    // Profile Image State
+    const [profileImage, setProfileImage] = useState<File | null>(null);
+    const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+
     const [error, setError] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -75,12 +82,24 @@ const SignupCompletePage = () => {
             document.getElementsByName('address')[0]?.focus();
             return;
         }
+        if (!isMapLoaded) {
+            alert("지도 서비스를 불러오는 중입니다. 잠시만 기다려주세요.");
+            return;
+        }
         openPostcode({ onComplete: handleAddressComplete });
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setProfileImage(file);
+            setProfileImagePreview(URL.createObjectURL(file));
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -91,6 +110,7 @@ const SignupCompletePage = () => {
         let finalLng = formData.longitude;
         if (finalLat === 0 && finalLng === 0) {
             // Default to Seoul City Hall if geocoding failed/skipped
+            console.warn("Missing coordinates. Using Seoul City Hall fallback for testing.");
             finalLat = 37.5665;
             finalLng = 126.9780;
         }
@@ -104,6 +124,12 @@ const SignupCompletePage = () => {
                 latitude: finalLat,
                 longitude: finalLng
             });
+
+            // Upload profile image if provided
+            if (profileImage) {
+                await memberApi.changeProfileImage(profileImage);
+            }
+
             setShowSuccessModal(true);
         } catch (err: any) {
             console.error(err);
@@ -120,7 +146,56 @@ const SignupCompletePage = () => {
             </p>
 
             <div className="card">
-                <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.5rem' }}>
+                    {/* 프로필 이미지 업로드 섹션 */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => document.getElementById('profileImageUpload')?.click()}>
+                            <div style={{
+                                width: '100px',
+                                height: '100px',
+                                borderRadius: '50%',
+                                backgroundColor: '#f1f5f9',
+                                border: '1px solid #e2e8f0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                                position: 'relative'
+                            }}>
+                                {profileImagePreview ? (
+                                    <img src={profileImagePreview} alt="Profile Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                    <img src={getProfileImageUrl(null)} alt="Default Profile" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                )}
+                            </div>
+                            <div style={{
+                                position: 'absolute',
+                                bottom: '0',
+                                right: '0',
+                                backgroundColor: 'var(--primary-color)',
+                                color: 'white',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '2px solid white',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            }}>
+                                <FaPen size={12} />
+                            </div>
+                        </div>
+                        <input
+                            id="profileImageUpload"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            style={{ display: 'none' }}
+                        />
+                        <span style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>프로필 사진 등록 (선택)</span>
+                    </div>
+
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>닉네임</label>
                         <input
@@ -188,7 +263,7 @@ const SignupCompletePage = () => {
 
                     {error && <div style={{ color: 'var(--danger-color)', fontSize: '0.9rem' }}>{error}</div>}
 
-                    <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem', borderRadius: '50px' }}>
+                    <button type="submit" className="btn btn-primary" style={{ marginTop: '0.5rem', borderRadius: '50px' }}>
                         가입 완료
                     </button>
                 </form>
