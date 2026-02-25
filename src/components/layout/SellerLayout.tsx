@@ -1,7 +1,8 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 
 const SellerLayout = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     // 만약 상점이름을 저장하고 있다면 가져옵니다. (없으면 임시로 'Mossy 상점'으로 대체)
     const storeName = localStorage.getItem('storeName') || 'Mossy 상점';
 
@@ -19,6 +20,25 @@ const SellerLayout = () => {
         gap: '0.75rem',
         transition: 'background-color 0.2s'
     };
+
+    const NavItem = ({ to, label, isActive }: { to: string, label: string, isActive: boolean }) => (
+        <Link to={to} style={{ textDecoration: 'none' }}>
+            <div
+                style={{
+                    ...sidebarNavStyle,
+                    backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
+                    fontWeight: isActive ? '700' : '500'
+                }}
+                onMouseOver={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)' }}
+                onMouseOut={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent' }}
+            >
+                <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>{label} ▾</span>
+            </div>
+        </Link>
+    );
+
+    const isOrdersActive = location.pathname === '/myshop' || location.pathname.startsWith('/myshop/orders');
+    const isPayoutActive = location.pathname.startsWith('/myshop/payout');
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f4f5f7' }}>
@@ -67,26 +87,12 @@ const SellerLayout = () => {
                     paddingTop: '1rem'
                 }}>
                     <nav style={{ display: 'flex', flexDirection: 'column' }}>
-                        <div style={sidebarNavStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>상품관리 ▾</span>
-                        </div>
-                        <div style={sidebarNavStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>가격관리 ▾</span>
-                        </div>
-                        <div
-                            style={{ ...sidebarNavStyle, backgroundColor: 'rgba(255,255,255,0.15)', fontWeight: '700' }}
-                        >
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>주문/배송 ▾</span>
-                        </div>
-                        <div style={sidebarNavStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>정산 ▾</span>
-                        </div>
-                        <div style={sidebarNavStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>고객관리 ▾</span>
-                        </div>
-                        <div style={sidebarNavStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>판매자정보 ▾</span>
-                        </div>
+                        <NavItem to="#" label="상품관리" isActive={false} />
+                        <NavItem to="#" label="가격관리" isActive={false} />
+                        <NavItem to="/myshop" label="주문/배송" isActive={isOrdersActive} />
+                        <NavItem to="/myshop/payout" label="정산" isActive={isPayoutActive} />
+                        <NavItem to="#" label="고객관리" isActive={false} />
+                        <NavItem to="#" label="판매자정보" isActive={false} />
                     </nav>
 
                     <div style={{ marginTop: 'auto', padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
