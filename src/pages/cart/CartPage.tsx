@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { cartApi, type CartResponse } from '../api/cart';
+import { cartApi, type CartResponse } from '../../api/cart';
 import { useNavigate } from 'react-router-dom';
 
 const CartPage = () => {
@@ -95,7 +95,7 @@ const CartPage = () => {
 
             console.log('Order request:', orderRequest);
 
-            const orderResponse = await import('../api/order').then(({ orderApi }) => orderApi.createOrder(orderRequest));
+            const orderResponse = await import('../../api/order').then(({ orderApi }) => orderApi.createOrder(orderRequest));
 
             if (!orderResponse.data || !orderResponse.data.orderId) {
                 throw new Error('주문 생성에 실패했습니다.');
@@ -111,7 +111,7 @@ const CartPage = () => {
             if (type === 'TOSS') {
                 // Initialize Toss Payments
                 const { loadTossPayments } = await import('@tosspayments/payment-sdk');
-                const { TOSS_CLIENT_KEY } = await import('../api/payment');
+                const { TOSS_CLIENT_KEY } = await import('../../api/payment');
 
                 const tossPayments = await loadTossPayments(TOSS_CLIENT_KEY);
 

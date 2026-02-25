@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDaumPostcodePopup } from 'react-daum-postcode';
-import Modal from '../components/Modal';
-import { authApi } from '../api/auth';
-import { getProfileImageUrl } from '../utils/image';
+import Modal from '../../components/Modal';
+import { authApi } from '../../api/auth';
+import { getProfileImageUrl } from '../../utils/image';
 
 const SignupPage = () => {
     const navigate = useNavigate();

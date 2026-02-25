@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaPen } from 'react-icons/fa';
-import { memberApi } from '../api/member';
-import { walletApi, type UserWalletResponseDto } from '../api/wallet';
+import { memberApi } from '../../../api/member';
+import { walletApi, type UserWalletResponseDto } from '../../../api/wallet';
 import ProfileEditPage from './ProfileEditPage';
-import { getProfileImageUrl, isDefaultProfile } from '../utils/image';
-import { couponApi, type UserCouponResponse } from '../api/coupon';
+import { getProfileImageUrl, isDefaultProfile } from '../../../utils/image';
+import { couponApi, type UserCouponResponse } from '../../../api/coupon';
 
 type TabType = 'orders' | 'profile' | 'likes' | 'reviews' | 'wallet' | 'coupon' | 'donation';
 

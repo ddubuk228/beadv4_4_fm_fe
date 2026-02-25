@@ -5,21 +5,21 @@ import LoginPage from './pages/LoginPage';
 import ProductListPage from './pages/ProductListPage';
 import WalletPage from './pages/WalletPage';
 import ProductDetailPage from './pages/ProductDetailPage';
-import SignupPage from './pages/SignupPage';
+import SignupPage from './pages/auth/SignupPage';
 import SellerRequestPage from './pages/SellerRequestPage';
-import CartPage from './pages/CartPage';
-import MyPage from './pages/MyPage';
-import OrdersPage from './pages/OrdersPage';
+import CartPage from './pages/cart/CartPage';
+import MyPage from './pages/member/user/MyPage';
+import OrdersPage from './pages/order/OrdersPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
-import PaymentFailPage from './pages/PaymentFailPage';
+import PaymentFailPage from './pages/payment/PaymentFailPage';
 
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import SignupCompletePage from './pages/SignupCompletePage';
 import AdminPage from './pages/AdminPage';
 import ProfileEditPage from './pages/ProfileEditPage';
 import SellerLayout from './components/layout/SellerLayout';
-import SellerDashboardPage from './pages/seller/SellerDashboardPage';
-import SellerOrderDetailPage from './pages/seller/order/SellerOrderDetailPage';
+import SellerDashboardPage from './pages/member/seller/SellerDashboardPage';
+import SellerOrderDetailPage from './pages/member/seller/SellerOrderDetailPage';
 
 function App() {
   return (
