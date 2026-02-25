@@ -77,7 +77,7 @@ const HomePage = () => {
     return (
         <div className="pb-0 bg-[var(--background-color)]">
             {/* 1. Hero Banner */}
-            <div className="relative min-h-[70vh] w-full flex flex-col justify-center items-center text-white text-center mb-20 bg-cover bg-center pt-32"
+            <div className="relative min-h-[70vh] w-full flex flex-col justify-center items-center text-white text-center mb-20 bg-cover bg-center"
                 style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1470058869958-2a77ade41c02?q=80&w=2070&auto=format&fit=crop)' }}>
 
                 {/* Overlay with gradient for better readability */}
