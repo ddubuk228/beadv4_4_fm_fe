@@ -3,7 +3,7 @@ name: Build and Deploy Frontend to EC2 Kubernetes
 on:
   push:
     branches:
-      - dev # 또는 main
+      - main
     paths-ignore:
       - 'README.md'
 
