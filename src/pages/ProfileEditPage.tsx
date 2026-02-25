@@ -26,7 +26,7 @@ const ProfileEditPage = ({ initialEmail }: ProfileEditPageProps) => {
 
     const openPostcode = useDaumPostcodePopup();
 
-    const [profileStep, setProfileStep] = useState<'menu' | 'verify' | 'edit'>('menu');
+    const [profileStep, setProfileStep] = useState<'menu' | 'verify' | 'edit' | 'social'>('menu');
     const [verifiedPassword, setVerifiedPassword] = useState('');
 
     const [modalConfig, setModalConfig] = useState({
@@ -177,33 +177,15 @@ const ProfileEditPage = ({ initialEmail }: ProfileEditPageProps) => {
                     <span style={{ color: '#94a3b8', fontSize: '1.2rem' }}>›</span>
                 </div>
                 <div
+                    onClick={() => {
+                        setProfileStep('social');
+                    }}
                     style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', transition: 'background-color 0.2s' }}
                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                    <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1e293b' }}>개인 정보 이용 내역</span>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1e293b' }}>소셜 로그인 연동하기</span>
                     <span style={{ color: '#94a3b8', fontSize: '1.2rem' }}>›</span>
-                </div>
-            </div>
-
-            <div className="card" style={{ padding: '0', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', overflow: 'hidden' }}>
-                <div style={{ padding: '1.5rem 1.5rem 0.5rem 1.5rem', color: '#64748b', fontSize: '0.9rem', fontWeight: 600 }}>보안관리</div>
-                <div
-                    style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                    <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1e293b' }}>로그인 관리</span>
-                    <span style={{ color: '#94a3b8', fontSize: '1.2rem' }}>›</span>
-                </div>
-                <div style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1e293b', marginBottom: '0.2rem' }}>해외 지역 로그인 차단</div>
-                    </div>
-                    {/* Toggle Switch Placeholder */}
-                    <div style={{ width: '40px', height: '24px', backgroundColor: '#e2e8f0', borderRadius: '12px', position: 'relative', cursor: 'not-allowed' }}>
-                        <div style={{ width: '20px', height: '20px', backgroundColor: '#ffffff', borderRadius: '50%', position: 'absolute', top: '2px', left: '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}></div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -481,6 +463,104 @@ const ProfileEditPage = ({ initialEmail }: ProfileEditPageProps) => {
         );
     };
 
+    const renderSocial = () => {
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button onClick={() => setProfileStep('menu')} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748b', padding: '0' }}>‹</button>
+                    <h2 style={{ fontSize: '1.25rem', margin: 0, fontWeight: 700, color: '#1e293b' }}>소셜 로그인 연동하기</h2>
+                </div>
+
+                <div className="card" style={{ padding: '0', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', borderRadius: '12px' }}>
+                    <div style={{ padding: '1.5rem 1.5rem 0.5rem 1.5rem', color: '#64748b', fontSize: '0.9rem', fontWeight: 600 }}>연동 관리</div>
+
+                    {/* 카카오 연동 */}
+                    <div style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ width: '40px', height: '40px', backgroundColor: '#FEE500', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="20" height="20" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 2C4.029 2 0 5.15 0 9.038c0 2.508 1.637 4.706 4.12 5.922-.142.482-.519 1.83-.553 1.968-.043.167.06.162.128.118.053-.035 1.705-1.144 2.39-1.613.626.084 1.258.125 1.915.125 4.971 0 9-3.15 9-7.038C18 5.15 13.971 2 9 2z" fill="#000000" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1e293b' }}>카카오</div>
+                                <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.2rem' }}>
+                                    {userInfo?.username?.startsWith('kakao_') ? '연동됨' : '연동 안 됨'}
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (userInfo?.username?.startsWith('kakao_')) {
+                                    alert('이미 연동되어 있습니다. 연동 해제는 준비 중입니다.');
+                                } else {
+                                    document.cookie = `linkToken=${localStorage.getItem('accessToken')}; path=/; max-age=300;`;
+                                    window.location.href = 'http://localhost:8086/oauth2/authorization/kakao';
+                                }
+                            }}
+                            style={{
+                                padding: '0.5rem 1rem',
+                                borderRadius: '6px',
+                                border: userInfo?.username?.startsWith('kakao_') ? '1px solid #e2e8f0' : 'none',
+                                backgroundColor: userInfo?.username?.startsWith('kakao_') ? '#ffffff' : '#f1f5f9',
+                                color: userInfo?.username?.startsWith('kakao_') ? '#64748b' : '#475569',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            {userInfo?.username?.startsWith('kakao_') ? '해제' : '연동'}
+                        </button>
+                    </div>
+
+                    {/* 구글 연동 */}
+                    <div style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ width: '40px', height: '40px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="20" height="20" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z" fill="#4285F4" />
+                                    <path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5614C11.2418 14.1014 10.2109 14.4205 9 14.4205C6.65591 14.4205 4.67182 12.8373 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z" fill="#34A853" />
+                                    <path d="M3.96409 10.71C3.78409 10.17 3.68182 9.59318 3.68182 9C3.68182 8.40682 3.78409 7.83 3.96409 7.29V4.95818H0.957275C0.347727 6.17318 0 7.54773 0 9C0 10.4523 0.347727 11.8268 0.957275 13.0418L3.96409 10.71Z" fill="#FBBC05" />
+                                    <path d="M9 3.57955C10.3214 3.57955 11.5077 4.03364 12.4405 4.92545L15.0218 2.34409C13.4632 0.891818 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.16273 6.65591 3.57955 9 3.57955Z" fill="#EA4335" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1e293b' }}>Google</div>
+                                <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.2rem' }}>
+                                    {userInfo?.username?.startsWith('google_') ? '연동됨' : '연동 안 됨'}
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (userInfo?.username?.startsWith('google_')) {
+                                    alert('이미 연동되어 있습니다. 연동 해제는 준비 중입니다.');
+                                } else {
+                                    document.cookie = `linkToken=${localStorage.getItem('accessToken')}; path=/; max-age=300;`;
+                                    window.location.href = 'http://localhost:8086/oauth2/authorization/google';
+                                }
+                            }}
+                            style={{
+                                padding: '0.5rem 1rem',
+                                borderRadius: '6px',
+                                border: userInfo?.username?.startsWith('google_') ? '1px solid #e2e8f0' : 'none',
+                                backgroundColor: userInfo?.username?.startsWith('google_') ? '#ffffff' : '#f1f5f9',
+                                color: userInfo?.username?.startsWith('google_') ? '#64748b' : '#475569',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            {userInfo?.username?.startsWith('google_') ? '해제' : '연동'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
             <h1 style={{ marginBottom: '2rem', fontSize: '1.5rem', textAlign: 'left', fontWeight: 700, letterSpacing: '-0.02em', color: '#1e293b', display: profileStep === 'menu' ? 'block' : 'none' }}>
@@ -490,6 +570,7 @@ const ProfileEditPage = ({ initialEmail }: ProfileEditPageProps) => {
             {profileStep === 'menu' && renderMenu()}
             {profileStep === 'verify' && renderVerify()}
             {profileStep === 'edit' && renderEdit()}
+            {profileStep === 'social' && renderSocial()}
 
             <Modal
                 isOpen={modalConfig.isOpen}

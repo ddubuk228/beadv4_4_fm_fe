@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useDaumPostcodePopup } from 'react-daum-postcode';
 import { memberApi, type SellerRequestCreateRequest } from '../api/member';
 import Modal from '../components/Modal';
+import { FaPen } from 'react-icons/fa';
+import { getProfileImageUrl } from '../utils/image';
 
 const SellerRequestPage = () => {
     const navigate = useNavigate();
@@ -20,6 +22,9 @@ const SellerRequestPage = () => {
         latitude: 0,
         longitude: 0,
     });
+
+    const [profileImage, setProfileImage] = useState<File | null>(null);
+    const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
 
     const [isMapLoaded, setIsMapLoaded] = useState(false);
     const [mapError, setMapError] = useState(false);
@@ -59,6 +64,14 @@ const SellerRequestPage = () => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setProfileImage(file);
+            setProfileImagePreview(URL.createObjectURL(file));
+        }
     };
 
     const handleAddressComplete = (data: any) => {
@@ -122,7 +135,7 @@ const SellerRequestPage = () => {
         }
 
         try {
-            const response = await memberApi.requestSeller(finalData);
+            const response = await memberApi.requestSeller(finalData, profileImage);
             if (response.resultCode.startsWith('S-200') || response.resultCode.startsWith('200')) {
                 setShowSuccessModal(true);
             } else {
@@ -140,6 +153,55 @@ const SellerRequestPage = () => {
 
             <div className="card">
                 <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
+
+                    {/* Profile Image */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => document.getElementById('profileImageUpload')?.click()}>
+                            <div style={{
+                                width: '100px',
+                                height: '100px',
+                                borderRadius: '50%',
+                                backgroundColor: '#f1f5f9',
+                                border: '1px solid #e2e8f0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                                position: 'relative'
+                            }}>
+                                {profileImagePreview ? (
+                                    <img src={profileImagePreview} alt="Profile Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                    <img src={getProfileImageUrl('default-seller')} alt="Default Profile" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                )}
+                            </div>
+                            <div style={{
+                                position: 'absolute',
+                                bottom: '0',
+                                right: '0',
+                                backgroundColor: 'var(--primary-color)',
+                                color: 'white',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '2px solid white',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            }}>
+                                <FaPen size={12} />
+                            </div>
+                        </div>
+                        <input
+                            id="profileImageUpload"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            style={{ display: 'none' }}
+                        />
+                        <span style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>스토어 프로필 (선택)</span>
+                    </div>
 
                     {/* Seller Type - Select */}
                     <div>

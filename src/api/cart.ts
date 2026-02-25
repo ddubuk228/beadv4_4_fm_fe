@@ -26,7 +26,7 @@ export const cartApi = {
         if (!userId) throw new Error("로그인이 필요합니다.");
 
         const response = await client.get<RsData<CartResponse>>('/cart', {
-            params: { userId }
+            headers: { 'X-User-Id': userId.toString() }
         });
         return response.data;
     },
@@ -39,7 +39,7 @@ export const cartApi = {
             productId,
             quantity
         }, {
-            params: { userId }
+            headers: { 'X-User-Id': userId.toString() }
         });
         return response.data;
     },
@@ -49,7 +49,7 @@ export const cartApi = {
         if (!userId) throw new Error("로그인이 필요합니다.");
 
         const response = await client.delete<RsData<void>>(`/cart/items/${productId}`, {
-            params: { userId }
+            headers: { 'X-User-Id': userId.toString() }
         });
         return response.data;
     },
@@ -62,7 +62,18 @@ export const cartApi = {
             productId,
             quantity
         }, {
-            params: { userId }
+            headers: { 'X-User-Id': userId.toString() }
+        });
+        return response.data;
+    },
+
+    removeCartItems: async (productItemIds: number[]) => {
+        const userId = getUserIdFromToken();
+        if (!userId) throw new Error("로그인이 필요합니다.");
+
+        const response = await client.delete<RsData<void>>('/cart/items', {
+            headers: { 'X-User-Id': userId.toString() },
+            data: { productItemIds }
         });
         return response.data;
     },
@@ -72,7 +83,7 @@ export const cartApi = {
         if (!userId) throw new Error("로그인이 필요합니다.");
 
         const response = await client.delete<RsData<void>>('/cart', {
-            params: { userId }
+            headers: { 'X-User-Id': userId.toString() }
         });
         return response.data;
     }
