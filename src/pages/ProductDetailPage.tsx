@@ -38,7 +38,7 @@ const ProductDetailPage = () => {
     const handleAddToCart = async () => {
         if (!product) return;
         try {
-            await cartApi.addToCart(product.productId, quantity);
+            await cartApi.addToCart(product.id, quantity);
             if (window.confirm('장바구니에 담겼습니다. 장바구니로 이동하시겠습니까?')) {
                 navigate('/cart');
             }
@@ -61,17 +61,17 @@ const ProductDetailPage = () => {
 
         try {
             const orderItems = [{
-                productId: product.productId,
+                productId: product.id,
                 sellerId: (product as any).sellerId || 0,
                 productName: product.name,
-                categoryName: (product as any).categoryName || "",
-                price: product.price,
-                weight: product.weight || 0,
-                thumbnailUrl: product.imageUrls?.[0] || "",
+                categoryName: product.categoryName || "",
+                price: product.minPrice,
+                weight: (product as any).weight || 0,
+                thumbnailUrl: product.thumbnail || "",
                 quantity: quantity
             }];
 
-            const requestTotalPrice = product.price * quantity;
+            const requestTotalPrice = product.minPrice * quantity;
 
             const orderRequest = {
                 totalPrice: requestTotalPrice,
@@ -138,9 +138,9 @@ const ProductDetailPage = () => {
                     {/* Image Section */}
                     <div className="space-y-4">
                         <div className="aspect-square bg-[#f8fafc] rounded-[1.5rem] overflow-hidden flex items-center justify-center relative shadow-inner">
-                            {product.imageUrls && product.imageUrls.length > 0 ? (
+                            {product.thumbnail ? (
                                 <img
-                                    src={product.imageUrls[0]}
+                                    src={product.thumbnail}
                                     alt={product.name}
                                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                                 />
@@ -180,7 +180,7 @@ const ProductDetailPage = () => {
                         </h1>
 
                         <p className="text-3xl font-bold text-[var(--primary-color)] mb-8 border-b border-[var(--border-color)] pb-8">
-                            {product.price?.toLocaleString()} <span className="text-lg font-normal text-[var(--text-muted)]">원</span>
+                            {product.minPrice?.toLocaleString()} <span className="text-lg font-normal text-[var(--text-muted)]">원</span>
                         </p>
 
                         <div className="prose prose-lg text-[var(--text-muted)] mb-10 leading-relaxed max-w-none">
@@ -190,11 +190,11 @@ const ProductDetailPage = () => {
                         <div className="grid grid-cols-2 gap-8 mb-10 text-sm">
                             <div>
                                 <span className="block text-[var(--text-muted)] mb-1">잔여 수량</span>
-                                <span className="block font-semibold text-[var(--text-main)] text-lg">{product.quantity}개</span>
+                                <span className="block font-semibold text-[var(--text-main)] text-lg">재고 문의</span>
                             </div>
                             <div>
                                 <span className="block text-[var(--text-muted)] mb-1">무게</span>
-                                <span className="block font-semibold text-[var(--text-main)] text-lg">{product.weight ?? 0}g</span>
+                                <span className="block font-semibold text-[var(--text-main)] text-lg">{(product as any).weight ?? 0}g</span>
                             </div>
                         </div>
 
@@ -210,11 +210,11 @@ const ProductDetailPage = () => {
                                     <input
                                         type="number"
                                         value={quantity}
-                                        onChange={(e) => setQuantity(Math.max(1, Math.min(product.quantity || 99, Number(e.target.value))))}
+                                        onChange={(e) => setQuantity(Math.max(1, Math.min(99, Number(e.target.value))))}
                                         className="w-16 text-center bg-transparent font-bold text-lg outline-none"
                                     />
                                     <button
-                                        onClick={() => setQuantity(Math.min(product.quantity || 99, quantity + 1))}
+                                        onClick={() => setQuantity(Math.min(99, quantity + 1))}
                                         className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg font-bold hover:bg-gray-100 transition-colors"
                                     >+</button>
                                 </div>
