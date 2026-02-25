@@ -1,15 +1,18 @@
 import client, { type RsData } from './client';
 
 export interface ProductResponse {
-    productId: number;
+    id: number;
     name: string;
-    price: number;
+    brand?: string;
+    modelNumber?: string;
+    categoryName?: string;
     description?: string;
-    imageUrls?: string[];
-    weight?: number;
-    // Add other fields based on backend response
+    thumbnail?: string;
+    minPrice: number;
+    sellerCount?: number;
     status?: string;
-    quantity?: number;
+    salesCount?: number;
+    reviewCount?: number;
 }
 
 export interface Page<T> {
@@ -25,13 +28,13 @@ export const marketApi = {
         const params: any = { page, size };
         if (keyword) params.keyword = keyword;
 
-        const response = await client.get<RsData<Page<ProductResponse>>>('/product/products', {
+        const response = await client.get<RsData<Page<ProductResponse>>>('/products/search', {
             params
         });
         return response.data;
     },
     getProduct: async (id: number) => {
-        const response = await client.get<RsData<ProductResponse>>(`/product/products/${id}`);
+        const response = await client.get<RsData<ProductResponse>>(`/products/${id}`);
         return response.data;
     }
 };

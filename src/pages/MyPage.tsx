@@ -5,15 +5,21 @@ import { memberApi } from '../api/member';
 import { walletApi, type UserWalletResponseDto } from '../api/wallet';
 import ProfileEditPage from './ProfileEditPage';
 import { getProfileImageUrl, isDefaultProfile } from '../utils/image';
+import { couponApi, type UserCouponResponse } from '../api/coupon';
 
 type TabType = 'orders' | 'profile' | 'likes' | 'reviews' | 'wallet' | 'coupon' | 'donation';
 
 const MyPage = () => {
     const navigate = useNavigate();
     const [walletInfo, setWalletInfo] = useState<UserWalletResponseDto | null>(null);
+    const [coupons, setCoupons] = useState<UserCouponResponse[]>([]);
+    const [totalCoupons, setTotalCoupons] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabType>('orders'); // Default tab is order history
     const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const [couponStatusFilter, setCouponStatusFilter] = useState<'ALL' | 'UNUSED' | 'USED' | 'EXPIRED'>('ALL');
+    const [couponPage, setCouponPage] = useState<number>(0);
+    const [couponTotalPages, setCouponTotalPages] = useState<number>(0);
 
     const alertShown = useRef(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,6 +76,7 @@ const MyPage = () => {
                     }
 
                     setWalletInfo(walletData as any);
+
                 }
             } catch (e) {
                 console.error('Failed to fetch me info', e);
@@ -80,6 +87,31 @@ const MyPage = () => {
 
         fetchInfo();
     }, [navigate]);
+
+    useEffect(() => {
+        if (!walletInfo) return;
+        const fetchCoupons = async () => {
+            try {
+                const statusParam = couponStatusFilter === 'ALL' ? undefined : couponStatusFilter;
+                const couponRes = await couponApi.getMyCoupons(couponPage, 10, statusParam);
+                if (couponRes && couponRes.data && couponRes.data.content) {
+                    setCoupons(couponRes.data.content);
+                    setCouponTotalPages(couponRes.data.totalPages);
+                    if (couponStatusFilter === 'ALL') {
+                        setTotalCoupons(couponRes.data.totalElements);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch coupons', err);
+            }
+        };
+        fetchCoupons();
+    }, [walletInfo, couponStatusFilter, couponPage]);
+
+    // Reset page when filter changes
+    useEffect(() => {
+        setCouponPage(0);
+    }, [couponStatusFilter]);
 
     if (loading) return <div className="container" style={{ textAlign: 'center', marginTop: '6rem' }}>로딩 중...</div>;
 
@@ -218,7 +250,79 @@ const MyPage = () => {
                     <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
                         <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>보유 쿠폰</h3>
                         <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
-                        <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94a3b8' }}>보유 중인 쿠폰이 없습니다.</div>
+
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem' }}>
+                            <select
+                                className="form-select"
+                                value={couponStatusFilter}
+                                onChange={(e) => setCouponStatusFilter(e.target.value as any)}
+                                style={{ width: '150px', padding: '0.6rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#475569', fontSize: '0.95rem' }}
+                            >
+                                <option value="ALL">전체</option>
+                                <option value="UNUSED">사용 가능</option>
+                                <option value="USED">사용 완료</option>
+                                <option value="EXPIRED">기간 만료</option>
+                            </select>
+                        </div>
+
+                        {coupons.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94a3b8' }}>보유 중인 쿠폰이 없습니다.</div>
+                        ) : (
+                            <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem', margin: '0 -0.5rem', padding: '0 0.5rem' }}>
+                                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: '0.5rem' }}>
+                                    {coupons.map((coupon) => (
+                                        <li key={coupon.userCouponId} style={{ padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div>
+                                                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.5rem' }}>
+                                                    {coupon.couponName}
+                                                </div>
+                                                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary-color)' }}>
+                                                    {coupon.couponType === 'PERCENTAGE'
+                                                        ? `${coupon.discountValue}% 할인`
+                                                        : `${coupon.discountValue.toLocaleString()}원 할인`}
+                                                </div>
+                                                {coupon.maxDiscountAmount && coupon.couponType === 'PERCENTAGE' && (
+                                                    <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.2rem' }}>
+                                                        최대 {coupon.maxDiscountAmount.toLocaleString()}원 할인
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ display: 'inline-block', padding: '0.4rem 0.8rem', backgroundColor: coupon.status === 'UNUSED' ? '#dcfce7' : '#f1f5f9', color: coupon.status === 'UNUSED' ? '#166534' : '#64748b', fontSize: '0.8rem', borderRadius: '50px', fontWeight: 600, marginBottom: '0.5rem' }}>
+                                                    {coupon.status === 'UNUSED' ? '사용 가능' : coupon.status === 'USED' ? '사용 완료' : '만료됨'}
+                                                </div>
+                                                <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                                                    {coupon.endAt ? `${new Date(coupon.endAt).toLocaleDateString()} 까지` : '기한 없음'}
+                                                </div>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        {/* Pagination Controls */}
+                        {couponTotalPages > 1 && (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
+                                <button
+                                    onClick={() => setCouponPage(p => Math.max(0, p - 1))}
+                                    disabled={couponPage === 0}
+                                    style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: couponPage === 0 ? '#f8fafc' : '#ffffff', color: couponPage === 0 ? '#94a3b8' : '#1e293b', cursor: couponPage === 0 ? 'not-allowed' : 'pointer' }}
+                                >
+                                    이전
+                                </button>
+                                <span style={{ color: '#475569', fontWeight: 500 }}>
+                                    {couponPage + 1} / {couponTotalPages}
+                                </span>
+                                <button
+                                    onClick={() => setCouponPage(p => Math.min(couponTotalPages - 1, p + 1))}
+                                    disabled={couponPage >= couponTotalPages - 1}
+                                    style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: couponPage >= couponTotalPages - 1 ? '#f8fafc' : '#ffffff', color: couponPage >= couponTotalPages - 1 ? '#94a3b8' : '#1e293b', cursor: couponPage >= couponTotalPages - 1 ? 'not-allowed' : 'pointer' }}
+                                >
+                                    다음
+                                </button>
+                            </div>
+                        )}
                     </div>
                 );
             default:
@@ -256,7 +360,7 @@ const MyPage = () => {
                     >
                         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', margin: 0, marginBottom: 'auto' }}>보유 쿠폰</h3>
                         <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#0f172a' }}>
-                            0<span style={{ fontSize: '1rem', fontWeight: 500, marginLeft: '4px' }}>개</span>
+                            {totalCoupons}<span style={{ fontSize: '1rem', fontWeight: 500, marginLeft: '4px' }}>개</span>
                         </div>
                     </div>
 

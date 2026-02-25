@@ -25,9 +25,7 @@ export const cartApi = {
         const userId = getUserIdFromToken();
         if (!userId) throw new Error("로그인이 필요합니다.");
 
-        const response = await client.get<RsData<CartResponse>>('/cart', {
-            headers: { 'X-User-Id': userId.toString() }
-        });
+        const response = await client.get<RsData<CartResponse>>('/carts');
         return response.data;
     },
 
@@ -35,11 +33,9 @@ export const cartApi = {
         const userId = getUserIdFromToken();
         if (!userId) throw new Error("로그인이 필요합니다.");
 
-        const response = await client.post<RsData<void>>('/cart/items', {
-            productId,
+        const response = await client.post<RsData<void>>('/carts/items', {
+            productItemId: productId,
             quantity
-        }, {
-            headers: { 'X-User-Id': userId.toString() }
         });
         return response.data;
     },
@@ -48,9 +44,7 @@ export const cartApi = {
         const userId = getUserIdFromToken();
         if (!userId) throw new Error("로그인이 필요합니다.");
 
-        const response = await client.delete<RsData<void>>(`/cart/items/${productId}`, {
-            headers: { 'X-User-Id': userId.toString() }
-        });
+        const response = await client.delete<RsData<void>>(`/carts/items/${productId}`);
         return response.data;
     },
 
@@ -58,22 +52,9 @@ export const cartApi = {
         const userId = getUserIdFromToken();
         if (!userId) throw new Error("로그인이 필요합니다.");
 
-        const response = await client.patch<RsData<void>>('/cart/items', {
-            productId,
+        const response = await client.patch<RsData<void>>('/carts/items', {
+            productItemId: productId,
             quantity
-        }, {
-            headers: { 'X-User-Id': userId.toString() }
-        });
-        return response.data;
-    },
-
-    removeCartItems: async (productItemIds: number[]) => {
-        const userId = getUserIdFromToken();
-        if (!userId) throw new Error("로그인이 필요합니다.");
-
-        const response = await client.delete<RsData<void>>('/cart/items', {
-            headers: { 'X-User-Id': userId.toString() },
-            data: { productItemIds }
         });
         return response.data;
     },
@@ -82,9 +63,7 @@ export const cartApi = {
         const userId = getUserIdFromToken();
         if (!userId) throw new Error("로그인이 필요합니다.");
 
-        const response = await client.delete<RsData<void>>('/cart', {
-            headers: { 'X-User-Id': userId.toString() }
-        });
+        const response = await client.delete<RsData<void>>('/carts');
         return response.data;
     }
 };
