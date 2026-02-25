@@ -2,7 +2,6 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 
 const SellerLayout = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     // 만약 상점이름을 저장하고 있다면 가져옵니다. (없으면 임시로 'Mossy 상점'으로 대체)
     const storeName = localStorage.getItem('storeName') || 'Mossy 상점';
 
@@ -20,25 +19,17 @@ const SellerLayout = () => {
         gap: '0.75rem',
         transition: 'background-color 0.2s'
     };
+    const location = useLocation();
 
-    const NavItem = ({ to, label, isActive }: { to: string, label: string, isActive: boolean }) => (
-        <Link to={to} style={{ textDecoration: 'none' }}>
-            <div
-                style={{
-                    ...sidebarNavStyle,
-                    backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
-                    fontWeight: isActive ? '700' : '500'
-                }}
-                onMouseOver={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)' }}
-                onMouseOut={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent' }}
-            >
-                <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>{label} ▾</span>
-            </div>
-        </Link>
-    );
-
-    const isOrdersActive = location.pathname === '/myshop' || location.pathname.startsWith('/myshop/orders');
-    const isPayoutActive = location.pathname.startsWith('/myshop/payout');
+    const menuItems = [
+        { name: '상품관리', path: '/myshop/products' },
+        { name: '가격관리', path: '/myshop/prices' },
+        { name: '주문 관리', path: '/myshop/orders' },
+        { name: '정산', path: '/myshop/settlements' },
+        { name: '쿠폰 관리', path: '/myshop/coupons' },
+        { name: '고객관리', path: '/myshop/customers' },
+        { name: '판매자정보', path: '/myshop/info' },
+    ];
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f4f5f7' }}>
@@ -87,12 +78,29 @@ const SellerLayout = () => {
                     paddingTop: '1rem'
                 }}>
                     <nav style={{ display: 'flex', flexDirection: 'column' }}>
-                        <NavItem to="#" label="상품관리" isActive={false} />
-                        <NavItem to="#" label="가격관리" isActive={false} />
-                        <NavItem to="/myshop" label="주문/배송" isActive={isOrdersActive} />
-                        <NavItem to="/myshop/payout" label="정산" isActive={isPayoutActive} />
-                        <NavItem to="#" label="고객관리" isActive={false} />
-                        <NavItem to="#" label="판매자정보" isActive={false} />
+                        {menuItems.map((item) => {
+                            const isActive = location.pathname.startsWith(item.path) || (item.name === '주문 관리' && location.pathname === '/myshop'); // 기본 활성 상태 (임시)
+
+                            return (
+                                <Link key={item.name} to={item.path} style={{ textDecoration: 'none' }}>
+                                    <div
+                                        style={{
+                                            ...sidebarNavStyle,
+                                            backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
+                                            fontWeight: isActive ? '700' : '500',
+                                        }}
+                                        onMouseOver={(e) => {
+                                            if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                                        }}
+                                        onMouseOut={(e) => {
+                                            if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>{item.name}</span>
+                                    </div>
+                                </Link>
+                            )
+                        })}
                     </nav>
 
                     <div style={{ marginTop: 'auto', padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.2)' }}>

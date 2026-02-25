@@ -88,18 +88,47 @@ const SellerOrderDetailPage = () => {
 
             {/* Card 3: 결제 정보 */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.5rem', marginBottom: '1.5rem', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0, marginBottom: '1.5rem', color: '#1e293b' }}>결제 정보</h3>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0, marginBottom: '1.5rem', color: '#1e293b' }}>상세 결제 내역</h3>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', fontSize: '0.95rem', color: '#475569' }}>
-                    <span>총 주문 금액</span>
-                    <strong style={{ color: '#1e293b', fontSize: '1.05rem' }}>150,000원</strong>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem', fontSize: '0.95rem', color: '#475569' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>상품 총 금액</span>
+                        <span style={{ color: '#1e293b' }}>150,000원</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>쿠폰 할인</span>
+                        <span style={{ color: '#ef4444' }}>- 10,000원</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>포인트 사용</span>
+                        <span style={{ color: '#ef4444' }}>- 2,000원</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>배송비</span>
+                        <span style={{ color: '#1e293b' }}>3,000원</span>
+                    </div>
                 </div>
 
                 <div style={{ borderTop: '1px solid #e2e8f0', margin: '0 -1.5rem 1.5rem -1.5rem' }}></div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: '#1e293b', fontWeight: 'bold' }}>
-                    <span>총 결제 금액 (VAT 포함)</span>
-                    <span style={{ fontSize: '1.1rem' }}>150,000원</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <span style={{ fontSize: '1.1rem', color: '#1e293b', fontWeight: 'bold' }}>최종 결제 금액</span>
+                    <strong style={{ fontSize: '1.3rem', color: 'var(--primary-color, #22c55e)' }}>141,000원</strong>
+                </div>
+
+                <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', fontSize: '0.9rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>결제 수단</span>
+                        <span style={{ color: '#1e293b', fontWeight: 500 }}>신용카드 (현대 1234-****-****)</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>결제 일시</span>
+                        <span style={{ color: '#1e293b', fontWeight: 500 }}>2022.11.20 13:40:15</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>승인 번호</span>
+                        <span style={{ color: '#1e293b', fontWeight: 500 }}>74839210</span>
+                    </div>
                 </div>
             </div>
 

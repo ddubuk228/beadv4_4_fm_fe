@@ -1,0 +1,172 @@
+import { useState, useEffect } from 'react';
+import { orderApi, type OrderListSellerResponse } from '../../../api/order';
+
+const SellerOrderPage = () => {
+    const [orders, setOrders] = useState<OrderListSellerResponse[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const size = 10;
+
+    const fetchOrders = async (pageNum: number) => {
+        setLoading(true);
+        try {
+            const res = await orderApi.getSellerOrders(pageNum, size);
+            if (res.data && res.data.content) {
+                setOrders(res.data.content);
+                setTotalPages(res.data.totalPages || 1);
+            }
+        } catch (error) {
+            console.error('Failed to fetch seller orders:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchOrders(page);
+    }, [page]);
+
+    return (
+        <div style={{ maxWidth: '1200px', margin: '0 auto', fontFamily: '"Noto Sans KR", sans-serif' }}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1.5rem' }}>
+                주문 관리
+            </h1>
+
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden' }}>
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 2fr 1fr 1fr 1fr 1.5fr',
+                    borderBottom: '1px solid #e2e8f0',
+                    padding: '1rem 1.5rem',
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
+                    color: '#64748b',
+                    backgroundColor: '#f8fafc'
+                }}>
+                    <div>상태</div>
+                    <div>상품 ID </div>
+                    <div>수량</div>
+                    <div>주문 금액</div>
+                    <div>주문일시</div>
+                    <div>관리</div>
+                </div>
+
+                {loading ? (
+                    <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>주문 내역을 불러오는 중...</div>
+                ) : orders.length === 0 ? (
+                    <div style={{ padding: '4rem 0', textAlign: 'center', color: '#94a3b8', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ fontSize: '3rem', opacity: 0.5 }}>📦</div>
+                        <div>아직 등록된 주문 내역이 없습니다.</div>
+                    </div>
+                ) : (
+                    orders.map(order => (
+                        <div key={order.orderDetailId} style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 2fr 1fr 1fr 1fr 1.5fr',
+                            borderBottom: '1px solid #f1f5f9',
+                            padding: '1rem 1.5rem',
+                            fontSize: '0.95rem',
+                            color: '#1e293b',
+                            alignItems: 'center',
+                            transition: 'background-color 0.2s'
+                        }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                            <div>
+                                <span style={{
+                                    padding: '0.2rem 0.6rem',
+                                    backgroundColor: '#e0f2fe',
+                                    color: '#0369a1',
+                                    borderRadius: '12px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 'bold'
+                                }}>
+                                    {order.state}
+                                </span>
+                            </div>
+                            <div>
+                                <div style={{ fontWeight: 600 }}>상품 ID: {order.productId}</div>
+                                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.2rem' }}>
+                                    상세 주문번호: {order.orderDetailId}
+                                </div>
+                            </div>
+                            <div>{order.quantity} 개</div>
+                            <div style={{ fontWeight: 'bold', color: '#ef4444' }}>
+                                {order.orderPrice.toLocaleString()}원
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: '#475569' }}>
+                                {new Date(order.createdAt).toLocaleDateString()}
+                            </div>
+                            <div>
+                                <button
+                                    onClick={() => alert('주문 상세 내역 이동 또는 변경 팝업 연결')}
+                                    style={{
+                                        padding: '0.4rem 0.8rem',
+                                        backgroundColor: 'transparent',
+                                        border: '1px solid #cbd5e1',
+                                        borderRadius: '6px',
+                                        color: '#64748b',
+                                        fontSize: '0.85rem',
+                                        cursor: 'pointer',
+                                        fontWeight: 500
+                                    }}
+                                    onMouseOver={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#f1f5f9';
+                                        e.currentTarget.style.color = '#0f172a';
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'transparent';
+                                        e.currentTarget.style.color = '#64748b';
+                                    }}
+                                >
+                                    상세보기
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Pagination */}
+            {!loading && totalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem' }}>
+                    <button
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                        style={{
+                            padding: '0.5rem 1rem',
+                            border: '1px solid #cbd5e1',
+                            backgroundColor: page === 0 ? '#f8fafc' : '#ffffff',
+                            color: page === 0 ? '#94a3b8' : '#1e293b',
+                            borderRadius: '8px',
+                            cursor: page === 0 ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        이전
+                    </button>
+                    <span style={{ padding: '0.5rem 1rem', fontWeight: 'bold', color: '#1e293b' }}>
+                        {page + 1} / {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page === totalPages - 1}
+                        style={{
+                            padding: '0.5rem 1rem',
+                            border: '1px solid #cbd5e1',
+                            backgroundColor: page === totalPages - 1 ? '#f8fafc' : '#ffffff',
+                            color: page === totalPages - 1 ? '#94a3b8' : '#1e293b',
+                            borderRadius: '8px',
+                            cursor: page === totalPages - 1 ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        다음
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default SellerOrderPage;
