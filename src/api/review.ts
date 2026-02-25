@@ -9,6 +9,8 @@ export interface ReviewResponse {
     id: number;
     orderItemId: number;
     productId: number;
+    productName: string;
+    imageUrl: string;
     userId: number;
     content: string;
     rating: number;
@@ -19,6 +21,8 @@ export interface ReviewResponse {
 export interface WritableReviewResponse {
     orderItemId: number;
     productId: number;
+    productName: string;
+    imageUrl: string;
     sellerId: number;
     createdAt: string;
 }

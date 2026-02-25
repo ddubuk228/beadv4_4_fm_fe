@@ -357,9 +357,14 @@ const MyPage = () => {
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                     {pendingReviews.map((pending, idx) => (
                                         <li key={`pending-${idx}`} style={{ padding: '1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <div>
-                                                <div style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '0.25rem' }}>구매 확정일: {new Date(pending.createdAt).toLocaleDateString()}</div>
-                                                <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#1e293b' }}>상품 번호: {pending.productId} (주문 상세: {pending.orderItemId})</div>
+                                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                                {pending.imageUrl && (
+                                                    <img src={pending.imageUrl} alt={pending.productName} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                                                )}
+                                                <div>
+                                                    <div style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '0.25rem' }}>구매 확정일: {new Date(pending.createdAt).toLocaleDateString()}</div>
+                                                    <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#1e293b' }}>{pending.productName || `상품 번호: ${pending.productId}`}</div>
+                                                </div>
                                             </div>
                                             <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: '6px' }} onClick={() => handleOpenReviewModal(pending.orderItemId)}>
                                                 리뷰 쓰기
@@ -380,15 +385,21 @@ const MyPage = () => {
                                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                         {myReviews.map((review) => (
                                             <li key={review.id} style={{ padding: '1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                                                    <div>
-                                                        <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.25rem' }}>작성일: {new Date(review.createdAt).toLocaleDateString()} · 상품 번호: {review.productId}</div>
-                                                        <div style={{ color: '#fbbf24', fontSize: '1.2rem', letterSpacing: '2px', marginBottom: '0.5rem' }}>
-                                                            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                                        {review.imageUrl && (
+                                                            <img src={review.imageUrl} alt={review.productName} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0' }} />
+                                                        )}
+                                                        <div>
+                                                            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.2rem' }}>{review.productName || `상품 번호: ${review.productId}`}</div>
+                                                            <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>작성일: {new Date(review.createdAt).toLocaleDateString()}</div>
                                                         </div>
                                                     </div>
+                                                    <div style={{ color: '#fbbf24', fontSize: '1.1rem', letterSpacing: '1px' }}>
+                                                        {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                                                    </div>
                                                 </div>
-                                                <div style={{ fontSize: '1rem', color: '#334155', lineHeight: '1.5' }}>
+                                                <div style={{ fontSize: '1rem', color: '#334155', lineHeight: '1.6', backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px' }}>
                                                     {review.content}
                                                 </div>
                                             </li>
