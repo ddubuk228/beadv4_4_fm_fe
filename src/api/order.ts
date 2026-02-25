@@ -40,6 +40,15 @@ export interface OrderDetailResponse {
     sellerName: string;
 }
 
+export interface OrderListSellerResponse {
+    orderDetailId: number;
+    productId: number;
+    quantity: number;
+    orderPrice: number;
+    state: string; // ENUM: OrderState
+    createdAt: string;
+}
+
 export const orderApi = {
     createOrder: async (request: CreateOrderRequest) => {
         const response = await client.post<RsData<OrderCreatedResponse>>('/orders', request);
@@ -52,9 +61,12 @@ export const orderApi = {
     },
 
     getOrderDetails: async (orderId: number) => {
-        // Backend returns List<OrderDetailResponse> directly or wrapped in RsData?
-        // Assuming direct list based on controller check previously: public List<OrderDetailResponse> getOrder(...)
         const response = await client.get<OrderDetailResponse[]>(`/orders/${orderId}`);
+        return response.data;
+    },
+
+    getSellerOrders: async (page = 0, size = 10) => {
+        const response = await client.get<RsData<{ content: OrderListSellerResponse[], totalPages: number }>>(`/seller/orders?page=${page}&size=${size}`);
         return response.data;
     }
 };
