@@ -137,17 +137,17 @@ const MyPage = () => {
 
     // Fetch Donations
     useEffect(() => {
-        if (!walletInfo || !walletInfo.user.id) return;
+        if (!walletInfo) return;
         const fetchDonations = async () => {
             try {
-                const summary = await donationApi.getSummary(walletInfo.user.id);
+                const summary = await donationApi.getSummary();
                 if (summary && summary.resultCode?.startsWith('200')) {
                     setDonationSummary(summary.data);
                 } else {
                     setDonationSummary(null);
                 }
 
-                const history = await donationApi.getHistory(walletInfo.user.id);
+                const history = await donationApi.getHistory();
                 if (history && history.resultCode?.startsWith('200')) {
                     setDonationHistory(history.data);
                 } else {
@@ -158,7 +158,7 @@ const MyPage = () => {
             }
         };
         fetchDonations();
-    }, [walletInfo?.user?.id]);
+    }, [walletInfo]);
 
     // Fetch Reviews
     useEffect(() => {

@@ -1,14 +1,13 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaShoppingCart, FaCommentDots } from 'react-icons/fa';
+import { FaCommentDots } from 'react-icons/fa';
 import type { ProductResponse } from '../api/market';
+import { cleanProductName } from '../utils/format';
 
 interface ProductCardProps {
     product: ProductResponse;
-    onAddToCart?: (e: React.MouseEvent, productId: number) => void;
 }
 
-export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
+export const ProductCard = ({ product }: ProductCardProps) => {
     // Extended Interface for UI Demo (Badges)
     // In a real app, these would come from the backend `product.badges`
     const isEco = product.id % 2 === 0; // Mock logic
@@ -61,16 +60,6 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                 )}
             </Link>
 
-            {/* Always Visible Add To Cart Button */}
-            <button
-                onClick={(e) => onAddToCart && onAddToCart(e, product.id)}
-                className="w-full bg-white border border-slate-200 text-slate-700 font-medium py-[10px] rounded-[4px] shadow-sm mb-3 flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
-                style={{ fontSize: '15px' }}
-            >
-                <FaShoppingCart className="text-slate-400" />
-                담기
-            </button>
-
             {/* Content Area */}
             <Link to={`/market/${product.id}`} className="flex flex-col flex-1 px-1 block">
                 {/* Brand Name */}
@@ -82,7 +71,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
 
                 {/* Product Name */}
                 <h3 className="text-[15px] font-normal text-[#333] leading-snug line-clamp-2 mb-2 group-hover:underline decoration-slate-400 underline-offset-2">
-                    {product.name}
+                    {cleanProductName(product.name)}
                 </h3>
 
                 {/* Price Area */}

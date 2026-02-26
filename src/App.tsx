@@ -22,6 +22,8 @@ import SellerLayout from './components/layout/SellerLayout';
 import SellerOrderDetailPage from './pages/member/seller/SellerOrderDetailPage';
 import SellerCouponPage from './pages/member/seller/SellerCouponPage';
 import SellerOrderPage from './pages/member/seller/SellerOrderPage';
+import SellerProductListPage from './pages/member/seller/SellerProductListPage';
+import SellerProductEditPage from './pages/member/seller/SellerProductEditPage';
 import RequireRole from './components/auth/RequireRole';
 import UnauthorizedPage from './pages/error/UnauthorizedPage';
 
@@ -62,6 +64,9 @@ function App() {
         <Route path="orders" element={<SellerOrderPage />} />
         <Route path="orders/:id" element={<SellerOrderDetailPage />} />
         <Route path="coupons" element={<SellerCouponPage />} />
+        <Route path="products" element={<SellerProductListPage />} />
+        <Route path="products/new" element={<SellerProductEditPage />} />
+        <Route path="products/:id/edit" element={<SellerProductEditPage />} />
       </Route>
     </Routes>
   );

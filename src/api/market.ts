@@ -42,7 +42,7 @@ export interface OtherSeller {
 
 export interface ProductDetailResponse {
     catalog: Catalog;
-    mainProduct: MainProduct;
+    mainProduct: MainProduct | null;
     otherSellers: OtherSeller[];
 }
 
@@ -70,9 +70,23 @@ export interface Page<T> {
 }
 
 export const marketApi = {
-    getProducts: async (page = 0, size = 10, keyword?: string) => {
+    getProducts: async ({
+        page = 0,
+        size = 10,
+        keyword,
+        categoryId,
+        order
+    }: {
+        page?: number;
+        size?: number;
+        keyword?: string;
+        categoryId?: number;
+        order?: string;
+    } = {}) => {
         const params: any = { page, size };
         if (keyword) params.keyword = keyword;
+        if (categoryId) params.categoryId = categoryId;
+        if (order) params.order = order;
 
         const response = await client.get<RsData<Page<ProductResponse>>>('/products/search', {
             params

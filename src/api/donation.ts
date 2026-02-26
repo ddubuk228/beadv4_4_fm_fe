@@ -27,18 +27,14 @@ export interface DonationMonthlyHistoryResponse {
 
 export const donationApi = {
     // 이번 달 기부 요약 조회
-    getSummary: async (userId: number) => {
-        const response = await client.get<RsData<DonationSummaryResponse>>('/donations/summary', {
-            headers: { 'X-User-Id': userId.toString() }
-        });
+    getSummary: async () => {
+        const response = await client.get<RsData<DonationSummaryResponse>>('/donations/summary');
         return response.data;
     },
 
     // 달별 기부 상세 내역 조회
-    getHistory: async (userId: number) => {
-        const response = await client.get<RsData<DonationMonthlyHistoryResponse[]>>('/donations/history', {
-            headers: { 'X-User-Id': userId.toString() }
-        });
+    getHistory: async () => {
+        const response = await client.get<RsData<DonationMonthlyHistoryResponse[]>>('/donations/history');
         return response.data;
     }
 };
