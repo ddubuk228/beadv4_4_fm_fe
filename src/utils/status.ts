@@ -11,6 +11,7 @@ export const getStatusText = (status: string): string => {
         'CANCELED': '주문취소',
         'CANCEL_REQUESTED': '주문취소 요청',
         'CANCEL_COMPLETED': '주문취소 완료',
+        'PARTIAL_CANCELED': '부분 환불',
         'REFUNDED': '환불완료'
     };
     return statusMap[status] || status;
@@ -29,6 +30,7 @@ export const getStatusColor = (status: string): { bg: string; text: string } => 
         'CANCELED': { bg: '#fee2e2', text: '#991b1b' },
         'CANCEL_REQUESTED': { bg: '#fee2e2', text: '#991b1b' },
         'CANCEL_COMPLETED': { bg: '#fee2e2', text: '#991b1b' },
+        'PARTIAL_CANCELED': { bg: '#fef9c3', text: '#ca8a04' },
         'REFUNDED': { bg: '#f1f5f9', text: '#475569' }
     };
     return colorMap[status] || { bg: '#f1f5f9', text: '#475569' };

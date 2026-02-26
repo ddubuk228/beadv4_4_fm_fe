@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaPen, FaWallet, FaTicketAlt, FaHeart, FaLeaf, FaFileInvoice } from 'react-icons/fa';
+import { FaPen, FaWallet, FaTicketAlt, FaHeart } from 'react-icons/fa';
+//import { FaPen, FaWallet, FaTicketAlt, FaHeart, FaLeaf, FaFileInvoice } from 'react-icons/fa';
 import { memberApi } from '../../../api/member';
 import { walletApi, type UserWalletResponseDto } from '../../../api/wallet';
 import ProfileEditPage from '../../product/ProfileEditPage';
@@ -9,7 +10,7 @@ import { couponApi, type UserCouponResponse } from '../../../api/coupon';
 import { donationApi, type DonationSummaryResponse, type DonationMonthlyHistoryResponse } from '../../../api/donation';
 import { reviewApi, type WritableReviewResponse, type ReviewResponse } from '../../../api/review';
 import OrdersPage from '../../order/OrdersPage';
-import { WishlistTab } from './WishlistTab';
+//import { WishlistTab } from './WishlistTab';
 
 type TabType = 'orders' | 'profile' | 'likes' | 'reviews' | 'wallet' | 'coupon' | 'donation';
 

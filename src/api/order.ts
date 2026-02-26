@@ -43,6 +43,7 @@ export interface OrderDetailResponse {
     couponName?: string;
     couponType?: string;
     sellerName: string;
+    status: string; // OrderState
 }
 
 export interface OrderListSellerResponse {

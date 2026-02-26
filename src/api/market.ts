@@ -1,5 +1,51 @@
 import client, { type RsData } from './client';
 
+export interface OptionGroup {
+    groupId: number;
+    name: string;
+    values: string[];
+}
+
+export interface ProductItem {
+    productItemsId: number;
+    optionCombination: string;
+    additionalPrice: number;
+    totalPrice: number;
+    quantity: number;
+    weight: number;
+    status: string;
+}
+
+export interface MainProduct {
+    productId: number;
+    sellerId: number;
+    basePrice: number;
+    optionGroups: OptionGroup[];
+    productItems: ProductItem[];
+}
+
+export interface Catalog {
+    id: number;
+    name: string;
+    brand: string;
+    description: string;
+    images: string[];
+    categoryId: number;
+    categoryName: string;
+}
+
+export interface OtherSeller {
+    productId: number;
+    sellerId: number;
+    minTotalPrice: number;
+}
+
+export interface ProductDetailResponse {
+    catalog: Catalog;
+    mainProduct: MainProduct;
+    otherSellers: OtherSeller[];
+}
+
 export interface ProductResponse {
     id: number;
     name: string;
