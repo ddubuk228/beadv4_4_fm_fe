@@ -47,31 +47,31 @@ const Navbar = () => {
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+    
+// Navbar.tsx 내부의 handleSearch 수정
+const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const keyword = searchTerm.trim();
+    
+    if (keyword) {
+        try {
+            const searchResults = await marketApi.getProducts({ page: 0, size: 10, keyword });
+            console.log("검색 결과 데이터:", searchResults);
 
-    // handleSearch 함수를 async로 변경하고 marketApi 호출 로직 추가
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const keyword = searchTerm.trim();
-        
-        if (keyword) {
-            try {
-                // marketApi.getProducts 호출 (page=0, size=10은 기본값 예시, keyword 전달)
-                const searchResults = await marketApi.getProducts({ page: 0, size: 10, keyword });
-                console.log("검색 결과 데이터:", searchResults);
-
-                // URL 쿼리 파라미터를 search에서 keyword로 변경하고, state로 검색 결과를 같이 넘겨줌
-                navigate(`/market?keyword=${encodeURIComponent(keyword)}`, {
-                    state: { initialData: searchResults }
-                });
-            } catch (error) {
-                console.error("검색 중 오류가 발생했습니다:", error);
-                // 에러가 나더라도 검색어 유지를 위해 이동 시킬지 여부는 기획에 따라 선택
-                navigate(`/market?keyword=${encodeURIComponent(keyword)}`);
-            } finally {
-                setSearchTerm('');
-            }
+            // 현재 위치가 메인 화면('/')이면 메인 화면에서 결과 렌더링, 아니면 '/market'으로 이동
+            const targetPath = location.pathname === '/' ? '/' : '/market';
+            navigate(`${targetPath}?keyword=${encodeURIComponent(keyword)}`, {
+                state: { initialData: searchResults }
+            });
+        } catch (error) {
+            console.error("검색 중 오류가 발생했습니다:", error);
+            const targetPath = location.pathname === '/' ? '/' : '/market';
+            navigate(`${targetPath}?keyword=${encodeURIComponent(keyword)}`);
+        } finally {
+            setSearchTerm('');
         }
-    };
+    }
+};
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
