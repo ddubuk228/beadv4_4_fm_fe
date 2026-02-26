@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { marketApi, type ProductResponse } from '../../api/market';
+import { marketApi, type ProductDetailResponse, type ProductItem } from '../../api/market';
 import { cartApi } from '../../api/cart';
 import { Button } from '../../components/Button';
 import { FaLeaf, FaShieldAlt, FaTruck } from 'react-icons/fa';
@@ -8,9 +8,13 @@ import { FaLeaf, FaShieldAlt, FaTruck } from 'react-icons/fa';
 const ProductDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [product, setProduct] = useState<ProductResponse | null>(null);
+    const [product, setProduct] = useState<ProductDetailResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // 옵션 선택 상태 관리
+    const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+    const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -33,12 +37,46 @@ const ProductDetailPage = () => {
         fetchProduct();
     }, [id]);
 
-    const [quantity, setQuantity] = useState(1);
+    // 선택된 옵션 조합 문자열 생성 (예: "비스포크 스카이블루 / 기본 설치")
+    const selectedOptionString = useMemo(() => {
+        if (!product?.mainProduct.optionGroups) return "";
+        return product.mainProduct.optionGroups
+            .map(group => selectedOptions[group.name])
+            .filter(Boolean)
+            .join(' / ');
+    }, [product, selectedOptions]);
+
+    // 선택된 옵션에 일치하는 상품 아이템 찾기
+    const selectedItem = useMemo<ProductItem | null>(() => {
+        if (!product?.mainProduct.productItems) return null;
+        return product.mainProduct.productItems.find(
+            item => item.optionCombination === selectedOptionString
+        ) || null;
+    }, [product, selectedOptionString]);
+
+    // 모든 옵션이 선택되었는지 확인
+    const isAllOptionsSelected = useMemo(() => {
+        if (!product?.mainProduct.optionGroups) return true;
+        return product.mainProduct.optionGroups.every(group => !!selectedOptions[group.name]);
+    }, [product, selectedOptions]);
+
+    const handleOptionChange = (groupName: string, value: string) => {
+        setSelectedOptions(prev => ({
+            ...prev,
+            [groupName]: value
+        }));
+    };
 
     const handleAddToCart = async () => {
         if (!product) return;
+        if (!isAllOptionsSelected || !selectedItem) {
+            alert('모든 옵션을 선택해주세요.');
+            return;
+        }
+
         try {
-            await cartApi.addToCart(product.id, quantity);
+            // 장바구니 API가 productId를 받을지 productItemsId를 받을지에 따라 인자 조정 필요
+            await cartApi.addToCart(product.mainProduct.productId, quantity); 
             if (window.confirm('장바구니에 담겼습니다. 장바구니로 이동하시겠습니까?')) {
                 navigate('/cart');
             }
@@ -56,22 +94,28 @@ const ProductDetailPage = () => {
 
     const handleDirectOrder = async (type: 'TOSS' | 'CASH') => {
         if (!product) return;
+        if (!isAllOptionsSelected || !selectedItem) {
+            alert('모든 필수 옵션을 선택해주세요.');
+            return;
+        }
 
         if (!window.confirm(type === 'TOSS' ? "바로 주문하시겠습니까?" : "예치금으로 바로 결제하시겠습니까?")) return;
 
         try {
+            const requestTotalPrice = selectedItem.totalPrice * quantity;
+            const thumbnailUrl = product.catalog.images?.[0] || "";
+
             const orderItems = [{
-                productId: product.id,
-                sellerId: (product as any).sellerId || 0,
-                productName: product.name,
-                categoryName: product.categoryName || "",
-                price: product.minPrice,
-                weight: (product as any).weight || 0,
-                thumbnailUrl: product.thumbnail || "",
+                productId: product.mainProduct.productId,
+                productItemId: selectedItem.productItemsId,
+                sellerId: product.mainProduct.sellerId,
+                productName: product.catalog.name,
+                categoryName: product.catalog.categoryName || "",
+                price: selectedItem.totalPrice,
+                weight: selectedItem.weight,
+                thumbnailUrl: thumbnailUrl,
                 quantity: quantity
             }];
-
-            const requestTotalPrice = product.minPrice * quantity;
 
             const orderRequest = {
                 totalPrice: requestTotalPrice,
@@ -96,7 +140,7 @@ const ProductDetailPage = () => {
                 await tossPayments.requestPayment('카드', {
                     amount: requestTotalPrice,
                     orderId: uniqueOrderId,
-                    orderName: `${product.name} ${quantity > 1 ? `외 ${quantity - 1}건` : ''}`,
+                    orderName: `${product.catalog.name} ${quantity > 1 ? `외 ${quantity - 1}건` : ''}`,
                     successUrl: `${window.location.origin}/payment/success`,
                     failUrl: `${window.location.origin}/payment/fail`,
                 });
@@ -124,6 +168,13 @@ const ProductDetailPage = () => {
 
     if (!product) return null;
 
+    const { catalog, mainProduct } = product;
+    const currentPrice = selectedItem ? selectedItem.totalPrice : mainProduct.basePrice;
+    const currentWeight = selectedItem ? selectedItem.weight : 0;
+    const currentQuantity = selectedItem ? selectedItem.quantity : 0;
+    const mainImage = catalog.images && catalog.images.length > 0 ? catalog.images[0] : null;
+    const productStatus = selectedItem ? selectedItem.status : 'ON_SALE';
+
     return (
         <div className="min-h-screen bg-[var(--background-color)] pt-32 pb-20">
             <div className="container mx-auto px-4 max-w-6xl">
@@ -138,10 +189,10 @@ const ProductDetailPage = () => {
                     {/* Image Section */}
                     <div className="space-y-4">
                         <div className="aspect-square bg-[#f8fafc] rounded-[1.5rem] overflow-hidden flex items-center justify-center relative shadow-inner">
-                            {product.thumbnail ? (
+                            {mainImage ? (
                                 <img
-                                    src={product.thumbnail}
-                                    alt={product.name}
+                                    src={mainImage}
+                                    alt={catalog.name}
                                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                                 />
                             ) : (
@@ -150,7 +201,6 @@ const ProductDetailPage = () => {
                                 </div>
                             )}
                         </div>
-                        {/* More images could go here as thumbnails */}
                         <div className="grid grid-cols-3 gap-4">
                             <div className="text-center p-4 bg-green-50 rounded-xl">
                                 <FaLeaf className="mx-auto text-green-600 mb-2" />
@@ -170,31 +220,60 @@ const ProductDetailPage = () => {
                     {/* Info Section */}
                     <div className="flex flex-col">
                         <div className="mb-2">
-                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 ${product.status === 'FOR_SALE' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
-                                {product.status === 'FOR_SALE' ? 'In Stock' : 'Sold Out'}
+                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 mr-2 ${productStatus === 'ON_SALE' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                                {productStatus === 'ON_SALE' ? 'In Stock' : 'Sold Out'}
                             </span>
+                            {catalog.brand && (
+                                <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700 mb-2">
+                                    {catalog.brand}
+                                </span>
+                            )}
                         </div>
 
                         <h1 className="text-4xl md:text-5xl font-serif font-bold text-[var(--text-main)] mb-4 leading-tight">
-                            {product.name}
+                            {catalog.name}
                         </h1>
 
                         <p className="text-3xl font-bold text-[var(--primary-color)] mb-8 border-b border-[var(--border-color)] pb-8">
-                            {product.minPrice?.toLocaleString()} <span className="text-lg font-normal text-[var(--text-muted)]">원</span>
+                            {currentPrice.toLocaleString()} <span className="text-lg font-normal text-[var(--text-muted)]">원</span>
                         </p>
 
-                        <div className="prose prose-lg text-[var(--text-muted)] mb-10 leading-relaxed max-w-none">
-                            <p>{product.description}</p>
+                        <div className="prose prose-lg text-[var(--text-muted)] mb-8 leading-relaxed max-w-none">
+                            <p>{catalog.description}</p>
                         </div>
+
+                        {/* Options Selector */}
+                        {mainProduct.optionGroups && mainProduct.optionGroups.length > 0 && (
+                            <div className="space-y-4 mb-8 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                                <h3 className="font-bold text-gray-800 mb-2">옵션 선택</h3>
+                                {mainProduct.optionGroups.map((group) => (
+                                    <div key={group.groupId}>
+                                        <label className="block text-sm text-gray-600 mb-1">{group.name}</label>
+                                        <select
+                                            value={selectedOptions[group.name] || ''}
+                                            onChange={(e) => handleOptionChange(group.name, e.target.value)}
+                                            className="w-full p-3 border border-gray-200 rounded-xl bg-white outline-none focus:ring-2 focus:ring-[var(--primary-color)] transition-shadow"
+                                        >
+                                            <option value="" disabled>{group.name}을(를) 선택하세요</option>
+                                            {group.values.map((val) => (
+                                                <option key={val} value={val}>{val}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-2 gap-8 mb-10 text-sm">
                             <div>
                                 <span className="block text-[var(--text-muted)] mb-1">잔여 수량</span>
-                                <span className="block font-semibold text-[var(--text-main)] text-lg">재고 문의</span>
+                                <span className="block font-semibold text-[var(--text-main)] text-lg">
+                                    {isAllOptionsSelected && selectedItem ? `${currentQuantity}개` : '옵션 선택 요망'}
+                                </span>
                             </div>
                             <div>
                                 <span className="block text-[var(--text-muted)] mb-1">무게</span>
-                                <span className="block font-semibold text-[var(--text-main)] text-lg">{(product as any).weight ?? 0}g</span>
+                                <span className="block font-semibold text-[var(--text-main)] text-lg">{currentWeight}g</span>
                             </div>
                         </div>
 
@@ -227,7 +306,8 @@ const ProductDetailPage = () => {
                                         size="lg"
                                         fullWidth
                                         onClick={handleAddToCart}
-                                        className="h-14"
+                                        className="h-14 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={!isAllOptionsSelected}
                                     >
                                         장바구니 담기
                                     </Button>
@@ -236,20 +316,26 @@ const ProductDetailPage = () => {
                                         size="lg"
                                         fullWidth
                                         onClick={() => handleDirectOrder('TOSS')}
-                                        className="h-14 bg-primary-color"
+                                        className="h-14 bg-primary-color disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={!isAllOptionsSelected}
                                     >
                                         카드 결제하기
                                     </Button>
                                     <Button
-
                                         size="lg"
                                         fullWidth
                                         onClick={() => handleDirectOrder('CASH')}
-                                        className="h-14 bg-emerald-600 text-white hover:bg-emerald-700 border-none shadow-lg shadow-emerald-900/10"
+                                        className="h-14 bg-emerald-600 text-white hover:bg-emerald-700 border-none shadow-lg shadow-emerald-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={!isAllOptionsSelected}
                                     >
                                         예치금 결제
                                     </Button>
                                 </div>
+                                {!isAllOptionsSelected && (
+                                    <p className="text-sm text-red-500 text-center font-medium">
+                                        상품의 옵션을 먼저 선택해주세요.
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
