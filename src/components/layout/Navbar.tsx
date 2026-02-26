@@ -56,7 +56,7 @@ const Navbar = () => {
         if (keyword) {
             try {
                 // marketApi.getProducts 호출 (page=0, size=10은 기본값 예시, keyword 전달)
-                const searchResults = await marketApi.getProducts(0, 10, keyword);
+                const searchResults = await marketApi.getProducts({ page: 0, size: 10, keyword });
                 console.log("검색 결과 데이터:", searchResults);
 
                 // URL 쿼리 파라미터를 search에서 keyword로 변경하고, state로 검색 결과를 같이 넘겨줌

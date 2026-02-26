@@ -17,7 +17,7 @@ const HomePage = () => {
 
         const fetchProducts = async () => {
             try {
-                const data = await marketApi.getProducts(0, 10); // Fetch top 10 items
+                const data = await marketApi.getProducts({ page: 0, size: 10 }); // Fetch top 10 items
                 setProducts(data.data.content);
             } catch (error) {
                 console.error("Failed to fetch home products", error);

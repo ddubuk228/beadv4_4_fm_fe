@@ -400,8 +400,11 @@ const ProductDetailPage = () => {
                 </div>
 
                 {/* Reviews Section */}
+                {/* Reviews Section */}
                 <div className="mt-16">
-                    <ProductReviews productId={product.mainProduct.productId} />
+                    {product.mainProduct && (
+                        <ProductReviews productId={product.mainProduct.productId} />
+                    )}
                 </div>
             </div>
         </div>
