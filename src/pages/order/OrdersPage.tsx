@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orderApi, type OrderResponse } from '../../api/order';
+import { paymentApi } from '../../api/payment';
 import { getStatusColor, getStatusText } from '../../utils/status';
 
 interface OrdersPageProps {
@@ -82,17 +83,20 @@ const OrdersPage = ({ isEmbedded = false, startDate, endDate, statusFilter }: Or
 
         if (selectedOrderToCancel && window.confirm('정말 이 주문을 전체 취소하시겠습니까?')) {
             try {
-                // TODO: Link to actual cancellation backend API when ready
-                // await orderApi.cancelOrder(selectedOrderToCancel.orderId, cancelReason);
-                console.log('Sending full cancel request for order:', selectedOrderToCancel.orderId, 'reason:', cancelReason);
-                alert(`전체 취소 기능은 백엔드 연동 대기 중입니다.\n\n취소 사유: ${cancelReason}`);
+                await paymentApi.cancelPayment({
+                    orderId: selectedOrderToCancel.orderNo,
+                    cancelReason: cancelReason
+                });
+
+                alert(`주문 전체 취소가 성공적으로 완료되었습니다.`);
                 setIsCancelModalOpen(false);
                 setCancelReason('');
                 setSelectedOrderToCancel(null);
-                // Optional: refresh orders list here
+                // Refresh the page
+                window.location.reload();
             } catch (err: any) {
                 console.error('Cancellation failed:', err);
-                alert('주문 취소에 실패했습니다.');
+                alert(err.response?.data?.message || '주문 취소에 실패했습니다.');
             }
         }
     };
