@@ -4,6 +4,7 @@ import { marketApi, type ProductDetailResponse, type ProductItem } from '../../a
 import { cartApi } from '../../api/cart';
 import { Button } from '../../components/Button';
 import { FaLeaf, FaShieldAlt, FaTruck } from 'react-icons/fa';
+import { cleanProductName } from '../../utils/format';
 
 const ProductDetailPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -76,7 +77,7 @@ const ProductDetailPage = () => {
 
         try {
             // 장바구니 API가 productId를 받을지 productItemsId를 받을지에 따라 인자 조정 필요
-            await cartApi.addToCart(product.mainProduct.productId, quantity); 
+            await cartApi.addToCart(product.mainProduct.productId, quantity);
             if (window.confirm('장바구니에 담겼습니다. 장바구니로 이동하시겠습니까?')) {
                 navigate('/cart');
             }
@@ -106,13 +107,13 @@ const ProductDetailPage = () => {
             const thumbnailUrl = product.catalog.images?.[0] || "";
 
             const orderItems = [{
-                productId: product.mainProduct.productId,
-                productItemId: selectedItem.productItemsId,
-                sellerId: product.mainProduct.sellerId,
-                productName: product.catalog.name,
-                categoryName: product.catalog.categoryName || "",
-                price: selectedItem.totalPrice,
-                weight: selectedItem.weight,
+                productId: product.mainProduct?.productId,
+                productItemId: selectedItem?.productItemsId,
+                sellerId: product.mainProduct?.sellerId || 0,
+                productName: cleanProductName(product.catalog?.name),
+                categoryName: product.catalog?.categoryName || "",
+                price: selectedItem ? selectedItem.totalPrice : product.mainProduct?.basePrice,
+                weight: selectedItem ? selectedItem.weight : 0,
                 thumbnailUrl: thumbnailUrl,
                 quantity: quantity
             }];
@@ -140,7 +141,7 @@ const ProductDetailPage = () => {
                 await tossPayments.requestPayment('카드', {
                     amount: requestTotalPrice,
                     orderId: uniqueOrderId,
-                    orderName: `${product.catalog.name} ${quantity > 1 ? `외 ${quantity - 1}건` : ''}`,
+                    orderName: `${cleanProductName(product.catalog?.name)} ${quantity > 1 ? `외 ${quantity - 1}건` : ''}`,
                     successUrl: `${window.location.origin}/payment/success`,
                     failUrl: `${window.location.origin}/payment/fail`,
                 });
@@ -231,7 +232,7 @@ const ProductDetailPage = () => {
                         </div>
 
                         <h1 className="text-4xl md:text-5xl font-serif font-bold text-[var(--text-main)] mb-4 leading-tight">
-                            {catalog.name}
+                            {cleanProductName(catalog?.name)}
                         </h1>
 
                         <p className="text-3xl font-bold text-[var(--primary-color)] mb-8 border-b border-[var(--border-color)] pb-8">
@@ -239,9 +240,8 @@ const ProductDetailPage = () => {
                         </p>
 
                         <div className="prose prose-lg text-[var(--text-muted)] mb-8 leading-relaxed max-w-none">
-                            <p>{catalog.description}</p>
+                            <p>{catalog?.description}</p>
                         </div>
-
                         {/* Options Selector */}
                         {mainProduct.optionGroups && mainProduct.optionGroups.length > 0 && (
                             <div className="space-y-4 mb-8 bg-gray-50 p-6 rounded-2xl border border-gray-100">
@@ -276,7 +276,6 @@ const ProductDetailPage = () => {
                                 <span className="block font-semibold text-[var(--text-main)] text-lg">{currentWeight}g</span>
                             </div>
                         </div>
-
                         <div className="mt-auto space-y-8">
                             {/* Quantity Selector */}
                             <div>

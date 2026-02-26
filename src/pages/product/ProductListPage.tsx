@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { marketApi, type ProductResponse } from '../../api/market';
-import { cartApi } from '../../api/cart';
 import { ProductCard } from '../../components/ProductCard';
 import { FaLeaf, FaFilter, FaChevronDown, FaHeart } from 'react-icons/fa';
 
@@ -13,17 +12,57 @@ const ProductListPage = () => {
 
     const [products, setProducts] = useState<ProductResponse[]>([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     // Filter states (mocking for UI)
     const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        setPage(0);
+        setProducts([]);
+        setHasMore(true);
+
+        const fetchInitialProducts = async () => {
             setLoading(true);
             try {
-                // We pass searchQuery if it exists. API pagination (0, 20)
-                const data = await marketApi.getProducts(0, 20, searchQuery);
-                setProducts(data.data.content);
+                let categoryId: number | undefined;
+                let order: string | undefined;
+
+                if (categoryQuery === 'best') { order = 'POPULAR'; }
+                else if (categoryQuery === 'new') { order = 'NEW'; }
+                else if (categoryQuery === 'sale' || categoryQuery === 'deals') { order = 'PRICE_ASC'; } // 임의 정렬
+                // 카테고리 매핑 (임의 ID 할당 - 백엔드 실제 ID에 맞게 추후 조정 가능)
+                if (categoryQuery === 'fashion') { categoryId = 1; }
+                else if (categoryQuery === 'beauty') { categoryId = 2; }
+                else if (categoryQuery === 'baby') { categoryId = 3; }
+                else if (categoryQuery === 'food') { categoryId = 4; }
+                else if (categoryQuery === 'kitchen') { categoryId = 5; }
+                else if (categoryQuery === 'living') { categoryId = 6; }
+                else if (categoryQuery === 'home') { categoryId = 7; }
+                else if (categoryQuery === 'digital') { categoryId = 8; }
+                else if (categoryQuery === 'sports') { categoryId = 9; }
+                else if (categoryQuery === 'car') { categoryId = 10; }
+                else if (categoryQuery === 'book') { categoryId = 11; }
+                else if (categoryQuery === 'toy') { categoryId = 12; }
+                else if (categoryQuery === 'office') { categoryId = 13; }
+                else if (categoryQuery === 'pet') { categoryId = 14; }
+                else if (categoryQuery === 'health') { categoryId = 15; }
+                // 'all'이나 기타 매핑되지 않은 것은 파라미터 제외 (전체 검색)
+
+                const data = await marketApi.getProducts({
+                    page: 0,
+                    size: 20,
+                    keyword: searchQuery,
+                    categoryId,
+                    order
+                });
+                const activeProducts = data.data.content.filter(p => !['DRAFT', 'INACTIVE', 'SUSPENDED'].includes(p.status || ''));
+                setProducts(activeProducts);
+                if (data.data.number >= data.data.totalPages - 1) {
+                    setHasMore(false);
+                }
             } catch (error) {
                 console.error('Failed to fetch products', error);
             } finally {
@@ -31,24 +70,55 @@ const ProductListPage = () => {
             }
         };
 
-        fetchProducts();
+        fetchInitialProducts();
     }, [categoryQuery, searchQuery]);
 
-    const addToCart = async (e: React.MouseEvent, productId: number) => {
-        e.preventDefault();
+    const handleLoadMore = async () => {
+        if (!hasMore || isLoadingMore) return;
+        setIsLoadingMore(true);
+        const nextPage = page + 1;
+
         try {
-            await cartApi.addToCart(productId, 1);
-            if (window.confirm('장바구니에 담겼습니다. 장바구니로 이동하시겠습니까?')) {
-                window.location.href = '/cart';
+            let categoryId: number | undefined;
+            let order: string | undefined;
+
+            if (categoryQuery === 'best') { order = 'POPULAR'; }
+            else if (categoryQuery === 'new') { order = 'NEW'; }
+            else if (categoryQuery === 'sale' || categoryQuery === 'deals') { order = 'PRICE_ASC'; }
+            else if (categoryQuery === 'fashion') { categoryId = 1; }
+            else if (categoryQuery === 'beauty') { categoryId = 2; }
+            else if (categoryQuery === 'baby') { categoryId = 3; }
+            else if (categoryQuery === 'food') { categoryId = 4; }
+            else if (categoryQuery === 'kitchen') { categoryId = 5; }
+            else if (categoryQuery === 'living') { categoryId = 6; }
+            else if (categoryQuery === 'home') { categoryId = 7; }
+            else if (categoryQuery === 'digital') { categoryId = 8; }
+            else if (categoryQuery === 'sports') { categoryId = 9; }
+            else if (categoryQuery === 'car') { categoryId = 10; }
+            else if (categoryQuery === 'book') { categoryId = 11; }
+            else if (categoryQuery === 'toy') { categoryId = 12; }
+            else if (categoryQuery === 'office') { categoryId = 13; }
+            else if (categoryQuery === 'pet') { categoryId = 14; }
+            else if (categoryQuery === 'health') { categoryId = 15; }
+
+            const data = await marketApi.getProducts({
+                page: nextPage,
+                size: 20,
+                keyword: searchQuery,
+                categoryId,
+                order
+            });
+            const activeProducts = data.data.content.filter(p => !['DRAFT', 'INACTIVE', 'SUSPENDED'].includes(p.status || ''));
+            setProducts(prev => [...prev, ...activeProducts]);
+            setPage(nextPage);
+
+            if (data.data.number >= data.data.totalPages - 1) {
+                setHasMore(false);
             }
-        } catch (err: any) {
-            console.error(err);
-            if (err.message === "로그인이 필요합니다." || err.response?.status === 401) {
-                alert("로그인이 필요합니다.");
-                window.location.href = '/login';
-            } else {
-                alert('장바구니 담기 실패: ' + (err.message || '오류가 발생했습니다.'));
-            }
+        } catch (error) {
+            console.error('Failed to load more products', error);
+        } finally {
+            setIsLoadingMore(false);
         }
     };
 
@@ -57,12 +127,21 @@ const ProductListPage = () => {
         if (searchQuery) return `"${searchQuery}" 검색 결과`;
         const map: Record<string, string> = {
             'all': '전체 상품',
-            'food': '친환경 식품',
-            'beauty': '클린 뷰티',
-            'living': '에코 생활용품',
-            'fashion': '서스테이너블 패션',
-            'zerowaste': '제로웨이스트',
-            'donation': '기부 굿즈'
+            'fashion': '패션의류/잡화',
+            'beauty': '뷰티',
+            'baby': '출산/유아동',
+            'food': '식품',
+            'kitchen': '주방용품',
+            'living': '생활용품',
+            'home': '홈인테리어',
+            'digital': '가전디지털',
+            'sports': '스포츠/레저',
+            'car': '자동차용품',
+            'book': '도서/음반/DVD',
+            'toy': '완구/취미',
+            'office': '문구/오피스',
+            'pet': '반려동물용품',
+            'health': '헬스/건강식품'
         };
         return map[categoryQuery] || '전체 상품';
     };
@@ -196,16 +275,22 @@ const ProductListPage = () => {
                                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                                     {products.map((product, index) => (
                                         <div key={product.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
-                                            <ProductCard product={product} onAddToCart={addToCart} />
+                                            <ProductCard product={product} />
                                         </div>
                                     ))}
                                 </div>
 
-                                <div className="mt-16 text-center">
-                                    <button className="px-8 py-3 bg-white border border-[#E8E6E1] hover:border-[var(--primary-color)] hover:text-[var(--primary-color)] text-slate-600 font-bold rounded-full transition-all shadow-sm">
-                                        상품 더보기
-                                    </button>
-                                </div>
+                                {hasMore && (
+                                    <div className="mt-16 text-center">
+                                        <button
+                                            onClick={handleLoadMore}
+                                            disabled={isLoadingMore}
+                                            className="px-8 py-3 bg-white border border-[#E8E6E1] hover:border-[var(--primary-color)] hover:text-[var(--primary-color)] text-slate-600 font-bold rounded-full transition-all shadow-sm disabled:opacity-50"
+                                        >
+                                            {isLoadingMore ? '불러오는 중...' : '상품 더보기'}
+                                        </button>
+                                    </div>
+                                )}
                             </>
                         )}
                     </div>
