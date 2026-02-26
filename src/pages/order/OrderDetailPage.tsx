@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getStatusColor, getStatusText } from '../../utils/status';
 import { orderApi, type OrderDetailResponse } from '../../api/order';
+import { paymentApi } from '../../api/payment';
 
 const OrderDetailPage = () => {
     const { id } = useParams();
@@ -85,16 +86,21 @@ const OrderDetailPage = () => {
         }
 
         try {
-            // TODO: Link to actual partial cancellation backend API when ready
-            // Payload example: { orderId: order.orderId, itemIds: selectedItems, reason: cancelReason }
-            console.log('Sending cancel request:', { itemIds: selectedItems, reason: cancelReason });
-            alert(`부분 취소 기능은 백엔드 연동 대기 중입니다.\n\n취소 사유: ${cancelReason}`);
+            await paymentApi.cancelPayment({
+                orderId: order.orderNo,
+                cancelReason: cancelReason,
+                ids: selectedItems
+            });
+
+            alert(`주문 부분 취소가 성공적으로 완료되었습니다.`);
             setIsCancelModalOpen(false);
             setCancelReason('');
-            // Optional: fetchDetails() to refresh state after successful cancel
-        } catch (error) {
+
+            // Refresh the page or go back
+            window.location.reload();
+        } catch (error: any) {
             console.error('Cancellation failed', error);
-            alert('주문 부분 취소에 실패했습니다.');
+            alert(error.response?.data?.message || '주문 부분 취소에 실패했습니다.');
         }
     };
 

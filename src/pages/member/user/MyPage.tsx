@@ -333,13 +333,6 @@ const MyPage = () => {
                                 />
                             </div>
 
-                        {/* Order List Empty State */}
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6rem 0', color: '#64748b' }}>
-                            <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
-                                <FaFileInvoice style={{ fontSize: '3.5rem', color: '#e2e8f0' }} />
-                                <FaLeaf style={{ position: 'absolute', bottom: '-4px', right: '-8px', fontSize: '1.5rem', color: '#3B5240' }} />
-                            </div>
-                            <div style={{ fontSize: '1.05rem', fontWeight: 500 }}>아직 주문이 없어요. 친환경 상품을 만나보세요.</div>
                             {/* 주문 상태 필터 */}
                             <select
                                 className="form-select"

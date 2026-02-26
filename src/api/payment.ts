@@ -28,6 +28,13 @@ export const loadTossPayments = async () => {
 };
 
 
+export interface PaymentCancelRequest {
+    orderId: string;
+    cancelReason: string;
+    cancelAmount?: number;
+    ids?: number[];
+}
+
 export const paymentApi = {
     // Confirm payment after user completes payment
     confirmPayment: async (request: PaymentConfirmRequest) => {
@@ -40,5 +47,11 @@ export const paymentApi = {
     getPaymentsByOrder: async (orderNo: string) => {
         const response = await client.get<RsData<PaymentResponse[]>>(`/payments/orders/${orderNo}`);
         return response.data.data; // Return just the list of payments
+    },
+
+    // Cancel payment (full or partial)
+    cancelPayment: async (request: PaymentCancelRequest) => {
+        const response = await client.post<RsData<void>>('/payments/cancel', request);
+        return response.data;
     }
 };
