@@ -3,8 +3,11 @@ import { FaCommentDots } from 'react-icons/fa';
 import type { ProductResponse } from '../api/market';
 import { cleanProductName } from '../utils/format';
 
+import React from 'react'; // 상단에 없다면 추가
+
 interface ProductCardProps {
     product: ProductResponse;
+    onAddToCart?: (e: React.MouseEvent, productId: number) => void;
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {
