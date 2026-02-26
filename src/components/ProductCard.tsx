@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaLeaf } from 'react-icons/fa';
+import { FaShoppingCart, FaCommentDots } from 'react-icons/fa';
 import type { ProductResponse } from '../api/market';
 
 interface ProductCardProps {
@@ -8,13 +8,17 @@ interface ProductCardProps {
     onAddToCart?: (e: React.MouseEvent, productId: number) => void;
 }
 
-export const ProductCard = ({ product }: ProductCardProps) => {
+export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
+    // Extended Interface for UI Demo (Badges)
+    // In a real app, these would come from the backend `product.badges`
+    const isEco = product.id % 2 === 0; // Mock logic
+    const discount = product.id % 5 === 0 ? 10 + (product.id % 3) * 5 : 0; // Mock logic
+    const mockReviews = 152 + (product.id * 17) % 800; // Mock logic 
+    const isMemberDeal = product.id % 7 === 0;
+
     return (
-        <Link
-            to={`/market/${product.id}`}
-            className="group block bg-surface-color rounded-2xl overflow-hidden border border-border-color hover:border-primary-color hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full flex flex-col"
-        >
-            <div className="relative aspect-[4/5] bg-stone-50 overflow-hidden">
+        <div className="group block bg-white w-full max-w-[250px] flex flex-col relative transition-all duration-300">
+            <Link to={`/market/${product.id}`} className="block relative aspect-[4/5] bg-[#F9F9F7] overflow-hidden rounded-[8px] mb-2">
                 {product.thumbnail ? (
                     <img
                         src={product.thumbnail}
@@ -22,30 +26,90 @@ export const ProductCard = ({ product }: ProductCardProps) => {
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.onerror = null;
                             target.style.display = 'none';
-                            target.nextElementSibling?.classList.remove('hidden'); // Show fallback
+                            target.nextElementSibling?.classList.remove('hidden');
                         }}
                     />
                 ) : null}
 
-                {/* Fallback for no image or error */}
-                <div className={`absolute inset-0 flex flex-col items-center justify-center text-secondary-color bg-stone-50 ${product.thumbnail ? 'hidden' : ''}`}>
-                    <FaLeaf className="text-4xl opacity-20 mb-2" />
+                {/* Fallback Image */}
+                <div className={`absolute inset-0 flex flex-col items-center justify-center text-slate-300 bg-[#F9F9F7] ${product.thumbnail ? 'hidden' : ''}`}>
                     <span className="text-xs font-medium uppercase tracking-widest opacity-40">No Image</span>
                 </div>
 
-            </div>
+                {/* Top Left Badges (Festa Deal, Member) */}
+                <div className="absolute top-0 left-0 flex flex-col gap-1">
+                    {isMemberDeal && (
+                        <span className="bg-[#42C8D2] px-2 py-1 text-[11px] font-bold text-white shadow-sm inline-block rounded-br-md">
+                            멤버스특가
+                        </span>
+                    )}
+                    {discount > 0 && !isMemberDeal && (
+                        <span className="bg-[#B964FF] px-2 py-[6px] text-[12px] font-bold text-white shadow-sm inline-block">
+                            {discount}% 쿠폰
+                        </span>
+                    )}
+                </div>
 
-            <div className="p-5 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-serif font-medium text-text-main line-clamp-2 group-hover:text-primary-color transition-colors">{product.name}</h3>
+                {/* FESTA DEAL Bottom Left Badge */}
+                {isEco && (
+                    <div className="absolute bottom-2 left-2">
+                        <span className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full text-[11px] font-bold text-slate-700 shadow-sm">
+                            FESTA DEAL
+                        </span>
+                    </div>
+                )}
+            </Link>
+
+            {/* Always Visible Add To Cart Button */}
+            <button
+                onClick={(e) => onAddToCart && onAddToCart(e, product.id)}
+                className="w-full bg-white border border-slate-200 text-slate-700 font-medium py-[10px] rounded-[4px] shadow-sm mb-3 flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                style={{ fontSize: '15px' }}
+            >
+                <FaShoppingCart className="text-slate-400" />
+                담기
+            </button>
+
+            {/* Content Area */}
+            <Link to={`/market/${product.id}`} className="flex flex-col flex-1 px-1 block">
+                {/* Brand Name */}
+                {product.brand && (
+                    <div className="text-[13px] text-slate-500 mb-1">
+                        [{product.brand}]
+                    </div>
+                )}
+
+                {/* Product Name */}
+                <h3 className="text-[15px] font-normal text-[#333] leading-snug line-clamp-2 mb-2 group-hover:underline decoration-slate-400 underline-offset-2">
+                    {product.name}
+                </h3>
+
+                {/* Price Area */}
+                <div className="flex flex-col mb-2">
+                    {discount > 0 && (
+                        <span className="text-[13px] text-slate-400 line-through mb-[2px]">
+                            {Math.round(product.minPrice * (1 + discount / 100)).toLocaleString()}원
+                        </span>
+                    )}
+                    <div className="flex items-end gap-[6px]">
+                        {discount > 0 && (
+                            <span className="text-[16px] font-bold text-[#FA622F]">
+                                {discount}%
+                            </span>
+                        )}
+                        <span className="text-[16px] font-bold text-[#333]">
+                            {product.minPrice?.toLocaleString() || 0}원~
+                        </span>
+                    </div>
                 </div>
-                <div className="mt-auto flex justify-between items-end">
-                    <p className="text-lg font-bold text-primary-color">{product.minPrice?.toLocaleString() || 0}원</p>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-success-color bg-green-50 px-2 py-1 rounded-sm">Free Shipping</span>
+
+                {/* Review Count (Bottom) */}
+                <div className="mt-auto flex items-center gap-1 text-[12px] text-[#999]">
+                    <FaCommentDots className="text-[11px]" />
+                    <span>{mockReviews > 999 ? '999+' : mockReviews}</span>
                 </div>
-            </div>
-        </Link>
+            </Link>
+        </div>
     );
 };
