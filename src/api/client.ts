@@ -41,7 +41,8 @@ client.interceptors.request.use(
         const isPublicGetRequest = config.method === 'get' && (
             url.includes('/products') ||
             url.includes('/categories') ||
-            url.includes('/market')
+            url.includes('/market') ||
+            url.includes('/reviews')
         );
         const isPublicRoute = isAuthRequest || isPublicGetRequest || url === '/' || url === '';
 
