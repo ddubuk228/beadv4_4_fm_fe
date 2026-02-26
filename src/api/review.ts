@@ -29,10 +29,12 @@ export interface WritableReviewResponse {
 
 export interface PaginatedReviewResponse {
     content: ReviewResponse[];
+    pageNumber: number;
+    pageSize: number;
     totalElements: number;
     totalPages: number;
-    size: number;
-    number: number;
+    first: boolean;
+    last: boolean;
 }
 
 export const reviewApi = {

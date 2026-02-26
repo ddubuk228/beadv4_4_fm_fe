@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { marketApi, type ProductDetailResponse, type ProductItem } from '../../api/market';
 import { cartApi } from '../../api/cart';
 import { Button } from '../../components/Button';
+import { ProductReviews } from '../../components/ProductReviews';
+import { ProductCoupons } from '../../components/ProductCoupons';
 import { FaLeaf, FaShieldAlt, FaTruck } from 'react-icons/fa';
 import { cleanProductName } from '../../utils/format';
 
@@ -311,6 +313,9 @@ const ProductDetailPage = () => {
 
                         {isAvailable ? (
                             <>
+                                <div className="mb-10">
+                                    <ProductCoupons productItemId={selectedItem?.productItemsId} />
+                                </div>
                                 <div className="grid grid-cols-2 gap-8 mb-10 text-sm">
                                     <div>
                                         <span className="block text-[var(--text-muted)] mb-1">잔여 수량</span>
@@ -392,6 +397,11 @@ const ProductDetailPage = () => {
                             </div>
                         )}
                     </div>
+                </div>
+
+                {/* Reviews Section */}
+                <div className="mt-16">
+                    <ProductReviews productId={product.mainProduct.productId} />
                 </div>
             </div>
         </div>
