@@ -65,12 +65,13 @@ jobs:
           {
             "commands": [
               "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml",
+              "kubectl create namespace mossy || true", # mossy 네임스페이스가 없으면 생성
               "cd /tmp",
               "rm -rf beadv4_4_fm_fe",
               "git clone https://github.com/${{ github.repository }}.git beadv4_4_fm_fe",
               "cd beadv4_4_fm_fe",
               "kubectl apply -f k8s/frontend.yaml",
-              "kubectl rollout restart deployment frontend-service -n backend"
+              "kubectl rollout restart deployment frontend-service -n mossy" # mossy로 재시작
             ]
           }
           EOF
