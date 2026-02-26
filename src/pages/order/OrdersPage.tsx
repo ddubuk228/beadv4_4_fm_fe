@@ -181,7 +181,7 @@ const OrdersPage = ({ isEmbedded = false, startDate, endDate, statusFilter }: Or
                                         </div>
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '110px' }}>
-                                            {(order.state === 'PAYMENT_COMPLETED' || order.state === 'PAID' || order.state === 'PREPARE') && (
+                                            {(order.state === 'PAYMENT_COMPLETED' || order.state === 'PAID' || order.state === 'PREPARE' || order.state === 'PARTIAL_CANCELED') && (
                                                 <button
                                                     onClick={() => handleOpenCancelModal(order)}
                                                     className="btn btn-outline"

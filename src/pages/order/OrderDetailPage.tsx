@@ -53,7 +53,7 @@ const OrderDetailPage = () => {
     }
 
     // Selection Logic
-    const cancellableItems = order.state === 'PAID' ? items : [];
+    const cancellableItems = items.filter(item => item.status === 'PAID');
 
     const handleSelectItem = (orderItemId: number, checked: boolean) => {
         if (checked) {
@@ -86,18 +86,28 @@ const OrderDetailPage = () => {
         }
 
         try {
+            // Calculate total cancel amount for selected items
+            const cancelAmount = selectedItems.reduce((total, itemId) => {
+                const item = items.find(i => i.orderItemId === itemId);
+                if (item) {
+                    return total + Math.max(0, ((item.originalPrice || 0) * item.quantity) - (item.discountAmount || 0));
+                }
+                return total;
+            }, 0);
+
             await paymentApi.cancelPayment({
                 orderId: order.orderNo,
                 cancelReason: cancelReason,
-                ids: selectedItems
+                ids: selectedItems,
+                cancelAmount: cancelAmount
             });
 
             alert(`주문 부분 취소가 성공적으로 완료되었습니다.`);
             setIsCancelModalOpen(false);
             setCancelReason('');
 
-            // Refresh the page or go back
-            window.location.reload();
+            // Go back to the order list (MyPage)
+            navigate('/mypage');
         } catch (error: any) {
             console.error('Cancellation failed', error);
             alert(error.response?.data?.message || '주문 부분 취소에 실패했습니다.');
@@ -151,7 +161,7 @@ const OrderDetailPage = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>주문 상품 ({order.itemCount}개)</h3>
                     </div>
-                    {order.state === 'PAID' && cancellableItems.length > 0 && (
+                    {cancellableItems.length > 0 && (
                         <button
                             onClick={handleCancelSelected}
                             className="btn btn-outline"
@@ -177,7 +187,8 @@ const OrderDetailPage = () => {
                         <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>상품 정보가 없습니다.</div>
                     ) : (
                         items.map((item: OrderDetailResponse, itemIdx: number) => {
-                            const isCancellable = order.state === 'PAID';
+                            // Check if the individual item is PAID
+                            const isCancellable = item.status === 'PAID';
                             const isSelected = selectedItems.includes(item.orderItemId);
 
                             return (
@@ -186,13 +197,15 @@ const OrderDetailPage = () => {
                                     borderBottom: itemIdx !== items.length - 1 ? '1px solid #f1f5f9' : 'none',
                                     display: 'flex', gap: '1.5rem', alignItems: 'center'
                                 }}>
-                                    {isCancellable && (
+                                    {isCancellable ? (
                                         <input
                                             type="checkbox"
                                             checked={isSelected}
                                             onChange={(e) => handleSelectItem(item.orderItemId, e.target.checked)}
                                             style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer', accentColor: 'var(--primary-color)', flexShrink: 0 }}
                                         />
+                                    ) : (
+                                        <div style={{ width: '1.2rem', height: '1.2rem', flexShrink: 0 }}></div>
                                     )}
 
                                     {/* Product Image Placeholder */}
@@ -202,8 +215,9 @@ const OrderDetailPage = () => {
 
                                     <div style={{ flex: 1 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem', gap: '0.5rem' }}>
-                                            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: getStatusColor(order.state).text }}>
-                                                {getStatusText(order.state)}
+                                            {/* Use item.status instead of order.state */}
+                                            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: getStatusColor(item.status).text }}>
+                                                {getStatusText(item.status)}
                                             </span>
                                         </div>
                                         <div style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '0.5rem' }}>
@@ -229,7 +243,7 @@ const OrderDetailPage = () => {
                                                 </div>
                                             )}
                                             <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', marginTop: '0.25rem' }}>
-                                                {((item.finalPrice || 0) * item.quantity).toLocaleString()}원
+                                                {Math.max(0, ((item.originalPrice || 0) * item.quantity) - (item.discountAmount || 0)).toLocaleString()}원
                                             </div>
                                         </div>
                                     </div>
@@ -245,6 +259,8 @@ const OrderDetailPage = () => {
                     )}
                 </div>
             </div>
+
+            <div style={{ paddingBottom: '3rem' }}></div>
 
             {/* Cancel Reason Modal */}
             {isCancelModalOpen && (

@@ -4,6 +4,7 @@ import { marketApi, type ProductDetailResponse, type ProductItem } from '../../a
 import { cartApi } from '../../api/cart';
 import { Button } from '../../components/Button';
 import { FaLeaf, FaShieldAlt, FaTruck } from 'react-icons/fa';
+import { cleanProductName } from '../../utils/format';
 
 const ProductDetailPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -39,7 +40,7 @@ const ProductDetailPage = () => {
 
     // 선택된 옵션 조합 문자열 생성 (예: "비스포크 스카이블루 / 기본 설치")
     const selectedOptionString = useMemo(() => {
-        if (!product?.mainProduct.optionGroups) return "";
+        if (!product?.mainProduct?.optionGroups) return "";
         return product.mainProduct.optionGroups
             .map(group => selectedOptions[group.name])
             .filter(Boolean)
@@ -48,15 +49,34 @@ const ProductDetailPage = () => {
 
     // 선택된 옵션에 일치하는 상품 아이템 찾기
     const selectedItem = useMemo<ProductItem | null>(() => {
-        if (!product?.mainProduct.productItems) return null;
+        if (!product?.mainProduct?.productItems) return null;
+
+        // 옵션 그룹이 아예 없는 상품 처리
+        if (!product.mainProduct.optionGroups || product.mainProduct.optionGroups.length === 0) {
+            if (product.mainProduct.productItems.length === 1) {
+                // 단일 아이템이면 자동 선택
+                return product.mainProduct.productItems[0] || null;
+            } else if (selectedOptions['__itemId']) {
+                // 아이템이 여러 개면 ID로 검색해서 선택
+                return product.mainProduct.productItems.find(item => item.productItemsId.toString() === selectedOptions['__itemId']) || null;
+            }
+            return null;
+        }
+
         return product.mainProduct.productItems.find(
             item => item.optionCombination === selectedOptionString
         ) || null;
-    }, [product, selectedOptionString]);
+    }, [product, selectedOptionString, selectedOptions]);
 
     // 모든 옵션이 선택되었는지 확인
     const isAllOptionsSelected = useMemo(() => {
-        if (!product?.mainProduct.optionGroups) return true;
+        if (!product?.mainProduct) return false;
+
+        if (!product.mainProduct.optionGroups || product.mainProduct.optionGroups.length === 0) {
+            if (product.mainProduct.productItems.length === 1) return true;
+            return !!selectedOptions['__itemId']; // 옵션 없는 다수 품목인 경우 선택했는지 확인
+        }
+
         return product.mainProduct.optionGroups.every(group => !!selectedOptions[group.name]);
     }, [product, selectedOptions]);
 
@@ -75,8 +95,9 @@ const ProductDetailPage = () => {
         }
 
         try {
+            if (!product.mainProduct) return;
             // 장바구니 API가 productId를 받을지 productItemsId를 받을지에 따라 인자 조정 필요
-            await cartApi.addToCart(product.mainProduct.productId, quantity); 
+            await cartApi.addToCart(product.mainProduct.productId, quantity);
             if (window.confirm('장바구니에 담겼습니다. 장바구니로 이동하시겠습니까?')) {
                 navigate('/cart');
             }
@@ -93,7 +114,7 @@ const ProductDetailPage = () => {
     };
 
     const handleDirectOrder = async (type: 'TOSS' | 'CASH') => {
-        if (!product) return;
+        if (!product || !product.mainProduct) return;
         if (!isAllOptionsSelected || !selectedItem) {
             alert('모든 필수 옵션을 선택해주세요.');
             return;
@@ -108,9 +129,9 @@ const ProductDetailPage = () => {
             const orderItems = [{
                 productId: product.mainProduct.productId,
                 productItemId: selectedItem.productItemsId,
-                sellerId: product.mainProduct.sellerId,
-                productName: product.catalog.name,
-                categoryName: product.catalog.categoryName || "",
+                sellerId: product.mainProduct.sellerId || 0,
+                productName: cleanProductName(product.catalog?.name),
+                categoryName: product.catalog?.categoryName || "",
                 price: selectedItem.totalPrice,
                 weight: selectedItem.weight,
                 thumbnailUrl: thumbnailUrl,
@@ -140,7 +161,7 @@ const ProductDetailPage = () => {
                 await tossPayments.requestPayment('카드', {
                     amount: requestTotalPrice,
                     orderId: uniqueOrderId,
-                    orderName: `${product.catalog.name} ${quantity > 1 ? `외 ${quantity - 1}건` : ''}`,
+                    orderName: `${cleanProductName(product.catalog?.name)} ${quantity > 1 ? `외 ${quantity - 1}건` : ''}`,
                     successUrl: `${window.location.origin}/payment/success`,
                     failUrl: `${window.location.origin}/payment/fail`,
                 });
@@ -169,11 +190,12 @@ const ProductDetailPage = () => {
     if (!product) return null;
 
     const { catalog, mainProduct } = product;
-    const currentPrice = selectedItem ? selectedItem.totalPrice : mainProduct.basePrice;
+    const isAvailable = !!mainProduct;
+    const currentPrice = selectedItem ? selectedItem.totalPrice : (mainProduct?.basePrice || 0);
     const currentWeight = selectedItem ? selectedItem.weight : 0;
     const currentQuantity = selectedItem ? selectedItem.quantity : 0;
     const mainImage = catalog.images && catalog.images.length > 0 ? catalog.images[0] : null;
-    const productStatus = selectedItem ? selectedItem.status : 'ON_SALE';
+    const productStatus = !isAvailable ? 'SOLD_OUT' : (selectedItem ? selectedItem.status : 'ON_SALE');
 
     return (
         <div className="min-h-screen bg-[var(--background-color)] pt-32 pb-20">
@@ -231,19 +253,24 @@ const ProductDetailPage = () => {
                         </div>
 
                         <h1 className="text-4xl md:text-5xl font-serif font-bold text-[var(--text-main)] mb-4 leading-tight">
-                            {catalog.name}
+                            {cleanProductName(catalog?.name)}
                         </h1>
 
-                        <p className="text-3xl font-bold text-[var(--primary-color)] mb-8 border-b border-[var(--border-color)] pb-8">
-                            {currentPrice.toLocaleString()} <span className="text-lg font-normal text-[var(--text-muted)]">원</span>
-                        </p>
+                        {isAvailable ? (
+                            <p className="text-3xl font-bold text-[var(--primary-color)] mb-8 border-b border-[var(--border-color)] pb-8">
+                                {currentPrice.toLocaleString()} <span className="text-lg font-normal text-[var(--text-muted)]">원</span>
+                            </p>
+                        ) : (
+                            <p className="text-2xl font-bold text-slate-500 mb-8 border-b border-[var(--border-color)] pb-8">
+                                현재 판매 중이지 않은 상품입니다.
+                            </p>
+                        )}
 
                         <div className="prose prose-lg text-[var(--text-muted)] mb-8 leading-relaxed max-w-none">
-                            <p>{catalog.description}</p>
+                            <p>{catalog?.description}</p>
                         </div>
-
                         {/* Options Selector */}
-                        {mainProduct.optionGroups && mainProduct.optionGroups.length > 0 && (
+                        {mainProduct?.optionGroups && mainProduct.optionGroups.length > 0 ? (
                             <div className="space-y-4 mb-8 bg-gray-50 p-6 rounded-2xl border border-gray-100">
                                 <h3 className="font-bold text-gray-800 mb-2">옵션 선택</h3>
                                 {mainProduct.optionGroups.map((group) => (
@@ -262,82 +289,108 @@ const ProductDetailPage = () => {
                                     </div>
                                 ))}
                             </div>
+                        ) : mainProduct?.productItems && mainProduct.productItems.length > 1 ? (
+                            <div className="space-y-4 mb-8 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                                <h3 className="font-bold text-gray-800 mb-2">상품 품목 선택</h3>
+                                <div>
+                                    <select
+                                        value={selectedOptions['__itemId'] || ''}
+                                        onChange={(e) => handleOptionChange('__itemId', e.target.value)}
+                                        className="w-full p-3 border border-gray-200 rounded-xl bg-white outline-none focus:ring-2 focus:ring-[var(--primary-color)] transition-shadow"
+                                    >
+                                        <option value="" disabled>상품을 선택하세요</option>
+                                        {mainProduct.productItems.map((item) => (
+                                            <option key={item.productItemsId} value={item.productItemsId.toString()}>
+                                                {item.optionCombination} - {item.totalPrice.toLocaleString()}원
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        ) : null}
+
+                        {isAvailable ? (
+                            <>
+                                <div className="grid grid-cols-2 gap-8 mb-10 text-sm">
+                                    <div>
+                                        <span className="block text-[var(--text-muted)] mb-1">잔여 수량</span>
+                                        <span className="block font-semibold text-[var(--text-main)] text-lg">
+                                            {isAllOptionsSelected && selectedItem ? `${currentQuantity}개` : '옵션 선택 요망'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-[var(--text-muted)] mb-1">무게</span>
+                                        <span className="block font-semibold text-[var(--text-main)] text-lg">{currentWeight}g</span>
+                                    </div>
+                                </div>
+                                <div className="mt-auto space-y-8">
+                                    {/* Quantity Selector */}
+                                    <div>
+                                        <label className="block text-sm font-bold text-[var(--text-main)] mb-3">수량 선택</label>
+                                        <div className="flex items-center gap-4 bg-slate-50 inline-flex p-2 rounded-full border border-slate-200">
+                                            <button
+                                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                                className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg font-bold hover:bg-gray-100 transition-colors"
+                                            >-</button>
+                                            <input
+                                                type="number"
+                                                value={quantity}
+                                                onChange={(e) => setQuantity(Math.max(1, Math.min(99, Number(e.target.value))))}
+                                                className="w-16 text-center bg-transparent font-bold text-lg outline-none"
+                                            />
+                                            <button
+                                                onClick={() => setQuantity(Math.min(99, quantity + 1))}
+                                                className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg font-bold hover:bg-gray-100 transition-colors"
+                                            >+</button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex gap-4">
+                                            <Button
+                                                variant="outline"
+                                                size="lg"
+                                                fullWidth
+                                                onClick={handleAddToCart}
+                                                className="h-14 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                disabled={!isAllOptionsSelected}
+                                            >
+                                                장바구니 담기
+                                            </Button>
+                                            <Button
+                                                variant="primary"
+                                                size="lg"
+                                                fullWidth
+                                                onClick={() => handleDirectOrder('TOSS')}
+                                                className="h-14 bg-primary-color disabled:opacity-50 disabled:cursor-not-allowed"
+                                                disabled={!isAllOptionsSelected}
+                                            >
+                                                카드 결제하기
+                                            </Button>
+                                            <Button
+                                                size="lg"
+                                                fullWidth
+                                                onClick={() => handleDirectOrder('CASH')}
+                                                className="h-14 bg-emerald-600 text-white hover:bg-emerald-700 border-none shadow-lg shadow-emerald-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                disabled={!isAllOptionsSelected}
+                                            >
+                                                예치금 결제
+                                            </Button>
+                                        </div>
+                                        {!isAllOptionsSelected && (
+                                            <p className="text-sm text-red-500 text-center font-medium">
+                                                상품의 옵션을 먼저 선택해주세요.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="mt-auto bg-slate-50 p-8 rounded-2xl text-center border border-slate-200">
+                                <p className="text-slate-600 font-bold text-lg">품절된 상품입니다.</p>
+                                <p className="text-slate-400 text-sm mt-2">현재 판매 중인 내역이 없습니다.</p>
+                            </div>
                         )}
-
-                        <div className="grid grid-cols-2 gap-8 mb-10 text-sm">
-                            <div>
-                                <span className="block text-[var(--text-muted)] mb-1">잔여 수량</span>
-                                <span className="block font-semibold text-[var(--text-main)] text-lg">
-                                    {isAllOptionsSelected && selectedItem ? `${currentQuantity}개` : '옵션 선택 요망'}
-                                </span>
-                            </div>
-                            <div>
-                                <span className="block text-[var(--text-muted)] mb-1">무게</span>
-                                <span className="block font-semibold text-[var(--text-main)] text-lg">{currentWeight}g</span>
-                            </div>
-                        </div>
-
-                        <div className="mt-auto space-y-8">
-                            {/* Quantity Selector */}
-                            <div>
-                                <label className="block text-sm font-bold text-[var(--text-main)] mb-3">수량 선택</label>
-                                <div className="flex items-center gap-4 bg-slate-50 inline-flex p-2 rounded-full border border-slate-200">
-                                    <button
-                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                        className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg font-bold hover:bg-gray-100 transition-colors"
-                                    >-</button>
-                                    <input
-                                        type="number"
-                                        value={quantity}
-                                        onChange={(e) => setQuantity(Math.max(1, Math.min(99, Number(e.target.value))))}
-                                        className="w-16 text-center bg-transparent font-bold text-lg outline-none"
-                                    />
-                                    <button
-                                        onClick={() => setQuantity(Math.min(99, quantity + 1))}
-                                        className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-lg font-bold hover:bg-gray-100 transition-colors"
-                                    >+</button>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-4">
-                                <div className="flex gap-4">
-                                    <Button
-                                        variant="outline"
-                                        size="lg"
-                                        fullWidth
-                                        onClick={handleAddToCart}
-                                        className="h-14 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        disabled={!isAllOptionsSelected}
-                                    >
-                                        장바구니 담기
-                                    </Button>
-                                    <Button
-                                        variant="primary"
-                                        size="lg"
-                                        fullWidth
-                                        onClick={() => handleDirectOrder('TOSS')}
-                                        className="h-14 bg-primary-color disabled:opacity-50 disabled:cursor-not-allowed"
-                                        disabled={!isAllOptionsSelected}
-                                    >
-                                        카드 결제하기
-                                    </Button>
-                                    <Button
-                                        size="lg"
-                                        fullWidth
-                                        onClick={() => handleDirectOrder('CASH')}
-                                        className="h-14 bg-emerald-600 text-white hover:bg-emerald-700 border-none shadow-lg shadow-emerald-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        disabled={!isAllOptionsSelected}
-                                    >
-                                        예치금 결제
-                                    </Button>
-                                </div>
-                                {!isAllOptionsSelected && (
-                                    <p className="text-sm text-red-500 text-center font-medium">
-                                        상품의 옵션을 먼저 선택해주세요.
-                                    </p>
-                                )}
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

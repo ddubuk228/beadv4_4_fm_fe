@@ -45,8 +45,8 @@ export const paymentApi = {
 
     // Check payment status by orderNo
     getPaymentsByOrder: async (orderNo: string) => {
-        const response = await client.get<RsData<PaymentResponse[]>>(`/payments/orders/${orderNo}`);
-        return response.data.data; // Return just the list of payments
+        const response = await client.get<RsData<any>>(`/payments/orders/${orderNo}`);
+        return response.data.data?.content || response.data.data || [];
     },
 
     // Cancel payment (full or partial)
