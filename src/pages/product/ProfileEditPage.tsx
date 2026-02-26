@@ -76,6 +76,9 @@ const ProfileEditPage = ({ initialEmail }: ProfileEditPageProps) => {
         fetchMe();
     }, [navigate]);
 
+    const [latitude, setLatitude] = useState(0);
+    const [longitude, setLongitude] = useState(0);
+
     const handleCompletePostcode = (data: any) => {
         let fullAddress = data.address;
         let extraAddress = '';
@@ -90,6 +93,16 @@ const ProfileEditPage = ({ initialEmail }: ProfileEditPageProps) => {
             fullAddress += extraAddress !== '' ? ` (${extraAddress})` : '';
         }
         setAddress1(fullAddress);
+
+        if ((window as any).kakao && (window as any).kakao.maps && (window as any).kakao.maps.services) {
+            const geocoder = new (window as any).kakao.maps.services.Geocoder();
+            geocoder.addressSearch(fullAddress, (result: any, status: any) => {
+                if (status === (window as any).kakao.maps.services.Status.OK) {
+                    setLatitude(parseFloat(result[0].y));
+                    setLongitude(parseFloat(result[0].x));
+                }
+            });
+        }
     };
 
     const handleClickPostcode = () => {
@@ -137,8 +150,8 @@ const ProfileEditPage = ({ initialEmail }: ProfileEditPageProps) => {
                 phoneNum: phoneNum || '',
                 address: fullAddress || '',
                 rrn: rrn || '',
-                latitude: 0,
-                longitude: 0,
+                latitude: latitude,
+                longitude: longitude,
             });
             setModalConfig({
                 isOpen: true,

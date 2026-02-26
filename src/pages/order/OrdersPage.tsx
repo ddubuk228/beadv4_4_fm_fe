@@ -1,39 +1,63 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { orderApi, type OrderResponse, type OrderDetailResponse } from '../../api/order';
-import { paymentApi, type PaymentResponse } from '../../api/payment';
+import { orderApi, type OrderResponse } from '../../api/order';
+import { paymentApi } from '../../api/payment';
+import { getStatusColor, getStatusText } from '../../utils/status';
 
-const OrdersPage = () => {
+interface OrdersPageProps {
+    isEmbedded?: boolean;
+    startDate?: string;
+    endDate?: string;
+    statusFilter?: string;
+}
+
+const OrdersPage = ({ isEmbedded = false, startDate, endDate, statusFilter }: OrdersPageProps) => {
     const navigate = useNavigate();
-    const [orders, setOrders] = useState<OrderResponse[]>([]);
+    const [orders, setOrders] = useState<any[]>([]); // Grouped orders from backend
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // Expanded State & Data Cache
-    const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
-    const [detailsCache, setDetailsCache] = useState<Record<number, { items: OrderDetailResponse[], payments: PaymentResponse[] }>>({});
-    const [loadingDetails, setLoadingDetails] = useState(false);
+    // Cancel Modal State
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [cancelReason, setCancelReason] = useState('');
+    const [selectedOrderToCancel, setSelectedOrderToCancel] = useState<any>(null);
 
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                // 백엔드는 RsData<Page<OrderListResponse>> 를 반환
-                const res = await orderApi.getMyOrders();
-                console.log('Buyer Orders API Response:', res); // 디버깅
-
-                // axios 응답(res) -> RsData(res.data) -> Page(res.data.data) -> 배열(res.data.data.content)
-                // api/order.ts의 리턴이 이미 res.data(RsData)일 수 있음
-                if (res?.data?.content) {
-                    setOrders(res.data.content);
-                } else if (res?.data?.data?.content) {
-                    setOrders(res.data.data.content);
-                } else if (Array.isArray(res?.data)) {
-                    setOrders(res.data);
-                } else if (Array.isArray(res?.content)) {
-                    setOrders(res.content);
-                } else {
-                    setOrders([]);
+                // Map frontend status to backend Enum for API
+                let apiState: string | undefined = undefined;
+                if (statusFilter && statusFilter !== '전체 상태') {
+                    const statusMap: Record<string, string> = {
+                        '주문완료': 'PAYMENT_COMPLETED',
+                        '주문확정': 'DELIVERED',
+                        '주문취소': 'CANCELED'
+                    };
+                    apiState = statusMap[statusFilter];
                 }
+
+                // Fetch group orders from API using filter params
+                const res = await orderApi.getMyOrders(0, 50, apiState, startDate, endDate);
+                let groupedOrders: OrderResponse[] = [];
+
+                if (res?.data?.content) {
+                    groupedOrders = res.data.content;
+                } else if (res?.data?.data?.content) {
+                    groupedOrders = res.data.data.content;
+                } else if (Array.isArray(res?.data)) {
+                    groupedOrders = res.data;
+                } else if (Array.isArray(res?.content)) {
+                    groupedOrders = res.content;
+                }
+
+                // Remove duplicate orders (by orderId) since the backend might return multiple rows for the same checkout
+                const uniqueOrders = Array.from(new Map(groupedOrders.map((o: any) => [o.orderId, o])).values());
+
+                // Sort orders by creation date (descending)
+                uniqueOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+                setOrders(uniqueOrders);
+
             } catch (err: any) {
                 console.error('Failed to fetch orders:', err);
                 setError('주문 내역을 불러오는 중 오류가 발생했습니다.');
@@ -43,51 +67,41 @@ const OrdersPage = () => {
         };
 
         fetchOrders();
-    }, []);
+    }, [startDate, endDate, statusFilter]);
 
-    const toggleOrder = async (orderId: number, orderNo: string) => {
-        if (expandedOrderId === orderId) {
-            setExpandedOrderId(null); // Close
+    const handleOpenCancelModal = (order: any) => {
+        setSelectedOrderToCancel(order);
+        setCancelReason('');
+        setIsCancelModalOpen(true);
+    };
+
+    const executeCancel = async () => {
+        if (!cancelReason.trim()) {
+            alert('취소 사유를 입력해주세요.');
             return;
         }
 
-        setExpandedOrderId(orderId); // Open
-
-        // If data is already cached, don't fetch again
-        if (detailsCache[orderId]) return;
-
-        setLoadingDetails(true);
-        try {
-            // Fetch Order Details
-            const items = await orderApi.getOrderDetails(orderId);
-
-            // Fetch Payments (using original orderNo without timestamp suffix)
-            const originalOrderNo = orderNo.split('__')[0];
-            let payments: PaymentResponse[] = [];
-
+        if (selectedOrderToCancel && window.confirm('정말 이 주문을 전체 취소하시겠습니까?')) {
             try {
-                const paymentsRs = await paymentApi.getPaymentsByOrder(originalOrderNo);
-                payments = Array.isArray(paymentsRs) ? paymentsRs : (paymentsRs as any).data || [];
-            } catch (paymentErr) {
-                console.warn('Payment info load failed:', paymentErr);
-                // Payments might be empty if failed, but we still show items
-            }
+                await paymentApi.cancelPayment({
+                    orderId: selectedOrderToCancel.orderNo,
+                    cancelReason: cancelReason
+                });
 
-            setDetailsCache(prev => ({
-                ...prev,
-                [orderId]: { items: Array.isArray(items) ? items : [], payments }
-            }));
-        } catch (err) {
-            console.error('Failed to fetch order details:', err);
-            // Set empty state to show "No info" message instead of alert
-            setDetailsCache(prev => ({
-                ...prev,
-                [orderId]: { items: [], payments: [] }
-            }));
-        } finally {
-            setLoadingDetails(false);
+                alert(`주문 전체 취소가 성공적으로 완료되었습니다.`);
+                setIsCancelModalOpen(false);
+                setCancelReason('');
+                setSelectedOrderToCancel(null);
+                // Refresh the page
+                window.location.reload();
+            } catch (err: any) {
+                console.error('Cancellation failed:', err);
+                alert(err.response?.data?.message || '주문 취소에 실패했습니다.');
+            }
         }
     };
+
+
 
     if (loading) return <div className="container" style={{ textAlign: 'center', marginTop: '6rem' }}>로딩 중...</div>;
 
@@ -101,140 +115,142 @@ const OrdersPage = () => {
     }
 
     return (
-        <div className="container" style={{ maxWidth: '800px', margin: '2rem auto', marginTop: '120px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary-color)' }}>주문 내역</h1>
-                <button onClick={() => navigate('/mypage')} className="btn btn-outline">마이페이지</button>
-            </div>
+        <div className={isEmbedded ? "" : "container"} style={isEmbedded ? {} : { maxWidth: '800px', margin: '2rem auto', marginTop: '120px' }}>
+            {!isEmbedded && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary-color)' }}>주문 내역</h1>
+                    <button onClick={() => navigate('/mypage')} className="btn btn-outline">마이페이지</button>
+                </div>
+            )}
 
             {orders.length === 0 ? (
-                <div className="card" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-                    <p>주문 내역이 없습니다.</p>
+                <div style={{ textAlign: 'center', padding: '4rem 0', color: '#94a3b8' }}>
+                    주문 내역이 없습니다.
                 </div>
             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {orders.map((order) => {
-                        const isExpanded = expandedOrderId === order.orderId;
-                        const details = detailsCache[order.orderId];
-
+                <div style={{
+                    display: 'flex', flexDirection: 'column', gap: '1rem',
+                    maxHeight: isEmbedded ? '500px' : 'none', overflowY: isEmbedded ? 'auto' : 'visible',
+                    paddingRight: isEmbedded ? '0.5rem' : '0'
+                }}>
+                    {orders.map((order, orderIdx) => {
                         return (
-                            <div key={order.orderId} className="card" style={{ padding: '0', overflow: 'hidden', border: isExpanded ? '1px solid var(--primary-color)' : '1px solid #e2e8f0', transition: 'all 0.2s' }}>
-                                {/* Order Summary (Clickable) */}
-                                <div
-                                    onClick={() => toggleOrder(order.orderId, order.orderNo)}
-                                    style={{ padding: '1.5rem', cursor: 'pointer', backgroundColor: isExpanded ? '#f8fafc' : 'white' }}
-                                >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                        <div>
-                                            <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                                                {new Date(order.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
-                                            </div>
-                                            <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>주문번호: {order.orderNo}</div>
-                                        </div>
-                                        <div style={{
-                                            padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600,
-                                            backgroundColor: getStatusColor(order.state).bg, color: getStatusColor(order.state).text,
-                                            height: 'fit-content'
-                                        }}>
-                                            {getStatusText(order.state)}
-                                        </div>
+                            <div key={`order-${order.orderId}-${orderIdx}`} className="card" style={{ padding: '0', overflow: 'hidden', border: '1px solid #e2e8f0', backgroundColor: '#fff', borderRadius: '12px' }}>
+                                {/* Order Header - Displayed ONCE per order group */}
+                                <div style={{ padding: '1.25rem 1.5rem', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <span style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginRight: '0.75rem' }}>
+                                            {new Date(order.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                        </span>
+                                        <span style={{ fontSize: '0.9rem', color: '#64748b' }}>주문번호: {order.orderNo}</span>
                                     </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div>
-                                            <div style={{ fontWeight: 600 }}>총 {order.itemCount}개 상품</div>
-                                            <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{order.address || '배송지 정보 없음'}</div>
-                                        </div>
-                                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary-color)' }}>
-                                            {order.totalPrice.toLocaleString()}원
-                                            <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: '#94a3b8' }}>{isExpanded ? '▲' : '▼'}</span>
-                                        </div>
+                                    <div
+                                        onClick={() => navigate(`/orders/${order.orderId}`, { state: { order } })}
+                                        style={{ fontSize: '0.9rem', fontWeight: 600, color: '#64748b', cursor: 'pointer' }}
+                                    >
+                                        주문 상세 <span style={{ fontSize: '0.8rem' }}>{'>'}</span>
                                     </div>
                                 </div>
 
-                                {/* Expanded Details */}
-                                {isExpanded && (
-                                    <div style={{ borderTop: '1px solid #e2e8f0', padding: '1.5rem', backgroundColor: '#fff' }}>
-                                        {loadingDetails && !details ? (
-                                            <div style={{ textAlign: 'center', padding: '1rem' }}>불러오는 중...</div>
-                                        ) : details ? (
-                                            <>
-                                                {details.items && details.items.length > 0 ? (
-                                                    <>
-                                                        <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem' }}>주문 상품</h4>
-                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
-                                                            {details.items.map((item, idx) => (
-                                                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-                                                                    <div>
-                                                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.sellerName || '판매자 정보 없음'}</div>
-                                                                        <div style={{ fontWeight: 600 }}>상품 ID: {item.productId}</div>
-                                                                        <div style={{ fontSize: '0.9rem' }}>수량: {item.quantity || 0}개</div>
-                                                                    </div>
-                                                                    <div style={{ fontWeight: 600, alignSelf: 'center' }}>{(item.orderPrice || 0).toLocaleString()}원</div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                {/* Order Items inside the group */}
+                                <div style={{ padding: '0 1.5rem' }}>
+                                    <div style={{
+                                        padding: '1.5rem 0',
+                                        display: 'flex', gap: '1.5rem', alignItems: 'center'
+                                    }}>
+                                        {/* Order Icon Placeholder */}
+                                        <div style={{ width: '80px', height: '80px', backgroundColor: '#f1f5f9', borderRadius: '8px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1', fontSize: '2rem' }}>
+                                            📦
+                                        </div>
 
-                                                        <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem' }}>결제 내역</h4>
-                                                        {details.payments && details.payments.length > 0 ? (
-                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                                                {details.payments.map((payment, idx) => (
-                                                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', padding: '0.5rem 0', borderBottom: '1px dashed #e2e8f0' }}>
-                                                                        <div>
-                                                                            <span style={{ fontWeight: 600, marginRight: '0.5rem' }}>{payment.payMethod || '결제수단'}</span>
-                                                                            <span style={{ color: '#64748b' }}>({payment.status || '상태없음'})</span>
-                                                                        </div>
-                                                                        <div>{(payment.amount || 0).toLocaleString()}원</div>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        ) : (
-                                                            <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>결제 내역이 없습니다.</div>
-                                                        )}
-                                                    </>
-                                                ) : (
-                                                    <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text-muted)' }}>
-                                                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</div>
-                                                        <p>주문 상세 정보를 불러올 수 없습니다.</p>
-                                                    </div>
-                                                )}
-                                            </>
-                                        ) : null}
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem', gap: '0.5rem' }}>
+                                                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: getStatusColor(order.state).text }}>
+                                                    {getStatusText(order.state)}
+                                                </span>
+                                            </div>
+                                            <div style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginBottom: '0.25rem' }}>
+                                                총 {order.itemCount}개의 상품
+                                            </div>
+                                            <div style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '0.5rem' }}>
+                                                배송지: {order.address || '정보 없음'}
+                                            </div>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-color)' }}>
+                                                {order.totalPrice.toLocaleString()}원
+                                            </div>
+                                        </div>
 
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '110px' }}>
+                                            {(order.state === 'PAYMENT_COMPLETED' || order.state === 'PAID' || order.state === 'PREPARE') && (
+                                                <button
+                                                    onClick={() => handleOpenCancelModal(order)}
+                                                    className="btn btn-outline"
+                                                    style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', color: '#ef4444', borderColor: '#ef4444' }}
+                                                >
+                                                    주문 취소
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         );
                     })}
                 </div>
             )}
+
+            {/* Cancel Reason Modal */}
+            {isCancelModalOpen && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: '#fff', borderRadius: '12px', padding: '2rem', width: '90%', maxWidth: '400px',
+                        boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)'
+                    }}>
+                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', fontWeight: 700, color: '#1e293b' }}>주문 전체 취소</h3>
+                        <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#64748b' }}>
+                            주문번호 {selectedOrderToCancel?.orderNo}을(를) 취소합니다.<br />
+                            취소 사유를 입력해주세요.
+                        </p>
+
+                        <textarea
+                            value={cancelReason}
+                            onChange={(e) => setCancelReason(e.target.value)}
+                            placeholder="취소 사유를 자세히 적어주세요 (예: 단순 변심, 배송 지연 등)"
+                            style={{
+                                width: '100%', minHeight: '100px', padding: '0.75rem', borderRadius: '8px',
+                                border: '1px solid #cbd5e1', marginBottom: '1.5rem', fontSize: '0.95rem',
+                                resize: 'vertical'
+                            }}
+                        />
+
+                        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => {
+                                    setIsCancelModalOpen(false);
+                                    setSelectedOrderToCancel(null);
+                                }}
+                                className="btn btn-outline"
+                                style={{ padding: '0.5rem 1rem' }}
+                            >
+                                닫기
+                            </button>
+                            <button
+                                onClick={executeCancel}
+                                className="btn btn-primary"
+                                style={{ padding: '0.5rem 1rem', backgroundColor: '#ef4444', borderColor: '#ef4444' }}
+                            >
+                                취소 실행
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
-};
-
-// Helper functions (updated for 'state' field)
-const getStatusText = (status: string): string => {
-    const statusMap: Record<string, string> = {
-        'PENDING': '주문접수',
-        'PAID': '결제완료',
-        'PREPARING': '배송준비',
-        'SHIPPING': '배송중',
-        'DELIVERED': '배송완료',
-        'CANCELLED': '주문취소'
-        // Add other states if needed
-    };
-    return statusMap[status] || status;
-};
-
-const getStatusColor = (status: string): { bg: string; text: string } => {
-    const colorMap: Record<string, { bg: string; text: string }> = {
-        'PENDING': { bg: '#fef3c7', text: '#92400e' },
-        'PAID': { bg: '#dbeafe', text: '#1e40af' },
-        'PREPARING': { bg: '#e0e7ff', text: '#4338ca' },
-        'SHIPPING': { bg: '#ddd6fe', text: '#6b21a8' },
-        'DELIVERED': { bg: '#d1fae5', text: '#065f46' },
-        'CANCELLED': { bg: '#fee2e2', text: '#991b1b' }
-    };
-    return colorMap[status] || { bg: '#f1f5f9', text: '#475569' };
 };
 
 export default OrdersPage;
