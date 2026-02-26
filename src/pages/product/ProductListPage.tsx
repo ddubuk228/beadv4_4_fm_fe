@@ -85,7 +85,7 @@ const ProductListPage = () => {
             if (categoryQuery === 'best') { order = 'POPULAR'; }
             else if (categoryQuery === 'new') { order = 'NEW'; }
             else if (categoryQuery === 'sale' || categoryQuery === 'deals') { order = 'PRICE_ASC'; }
-            if (categoryQuery === 'fashion') { categoryId = 1; }
+            else if (categoryQuery === 'fashion') { categoryId = 1; }
             else if (categoryQuery === 'beauty') { categoryId = 2; }
             else if (categoryQuery === 'baby') { categoryId = 3; }
             else if (categoryQuery === 'food') { categoryId = 4; }
