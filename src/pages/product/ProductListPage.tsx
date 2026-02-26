@@ -58,7 +58,11 @@ const ProductListPage = () => {
                     categoryId,
                     order
                 });
-                const activeProducts = data.data.content.filter(p => !['DRAFT', 'INACTIVE', 'SUSPENDED'].includes(p.status || ''));
+                // 이전: !['DRAFT', 'INACTIVE', 'SUSPENDED'].includes(p.status || '')
+                // 변경: 명시적으로 정상 상태('ACTIVE', 'FOR_SALE', 'PRE_ORDER')인 캐시 데이터만 화면에 노출 (불일치 유령상품 차단)
+                const activeProducts = data.data.content.filter(p =>
+                    ['ACTIVE', 'FOR_SALE', 'PRE_ORDER'].includes(p.status || '')
+                );
                 setProducts(activeProducts);
                 if (data.data.number >= data.data.totalPages - 1) {
                     setHasMore(false);
@@ -108,7 +112,9 @@ const ProductListPage = () => {
                 categoryId,
                 order
             });
-            const activeProducts = data.data.content.filter(p => !['DRAFT', 'INACTIVE', 'SUSPENDED'].includes(p.status || ''));
+            const activeProducts = data.data.content.filter(p =>
+                ['ACTIVE', 'FOR_SALE', 'PRE_ORDER'].includes(p.status || '')
+            );
             setProducts(prev => [...prev, ...activeProducts]);
             setPage(nextPage);
 

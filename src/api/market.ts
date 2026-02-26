@@ -42,7 +42,7 @@ export interface OtherSeller {
 
 export interface ProductDetailResponse {
     catalog: Catalog;
-    mainProduct: MainProduct;
+    mainProduct: MainProduct | null;
     otherSellers: OtherSeller[];
 }
 
