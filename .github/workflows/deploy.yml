@@ -65,7 +65,7 @@ jobs:
           {
             "commands": [
               "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml",
-              "kubectl create namespace mossy || true", # mossy 네임스페이스가 없으면 생성
+              "kubectl create namespace mossy || true",
               "cd /tmp",
               "rm -rf beadv4_4_fm_fe",
               "git clone https://github.com/${{ github.repository }}.git beadv4_4_fm_fe",
