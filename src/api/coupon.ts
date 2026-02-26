@@ -76,12 +76,13 @@ export interface PageData<T> {
 }
 
 export const couponApi = {
-    getMyCoupons: async (page: number = 0, size: number = 20, status?: 'UNUSED' | 'USED' | 'EXPIRED') => {
+    getMyCoupons: async (page: number = 0, size: number = 20, status?: 'UNUSED' | 'USED' | 'EXPIRED', couponType?: 'FIXED' | 'PERCENTAGE') => {
         const response = await client.get<RsData<PageData<UserCouponResponse>>>('/coupons/me', {
             params: {
                 page,
                 size,
                 status,
+                couponType,
                 sort: 'createdAt,desc'
             }
         });

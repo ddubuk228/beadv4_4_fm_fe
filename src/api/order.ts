@@ -34,9 +34,14 @@ export interface OrderResponse {
 }
 
 export interface OrderDetailResponse {
-    productId: number;
+    orderItemId: number;
+    productItemId: number;
     quantity: number;
-    orderPrice: number;
+    originalPrice: number;
+    discountAmount: number;
+    finalPrice: number;
+    couponName?: string;
+    couponType?: string;
     sellerName: string;
 }
 
@@ -58,13 +63,20 @@ export const orderApi = {
         return response.data;
     },
 
-    getMyOrders: async (page = 0, size = 5) => {
-        const response = await client.get<any>(`/orders?page=${page}&size=${size}`);
+    getMyOrders: async (page = 0, size = 5, state?: string, startDate?: string, endDate?: string) => {
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString(),
+            ...(state && state !== '전체 상태' && { state }),
+            ...(startDate && { startDate }),
+            ...(endDate && { endDate })
+        });
+        const response = await client.get<any>(`/orders?${queryParams.toString()}`);
         return response.data;
     },
 
     getOrderDetails: async (orderId: number) => {
-        const response = await client.get<OrderDetailResponse[]>(`/orders/${orderId}`);
+        const response = await client.get<RsData<OrderDetailResponse[]>>(`/orders/${orderId}`);
         return response.data;
     },
 
