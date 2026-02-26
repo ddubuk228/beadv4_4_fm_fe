@@ -61,8 +61,15 @@ const AdminPage = () => {
                     setModalData(prev => ({ ...prev, isOpen: false }));
                     const res = await adminApi.approveSellerRequest(id);
                     if (res.resultCode.startsWith('S-')) {
-                        alert('승인되었습니다.');
-                        window.location.reload();
+                        // 중요: 판매자 승인이 완료되면 새로운 권한(SELLER)이 포함된 토큰이 발급됩니다.
+                        if (res.data.accessToken) {
+                            localStorage.setItem('accessToken', res.data.accessToken);
+                            alert('승인되었습니다. 이제 판매자 권한이 부여되었습니다.');
+                            window.location.reload(); // 토큰 갱신 및 UI 반영을 위한 리로드
+                        } else {
+                            alert('승인되었습니다.');
+                            window.location.reload();
+                        }
                     } else {
                         alert('승인 실패: ' + res.msg);
                     }

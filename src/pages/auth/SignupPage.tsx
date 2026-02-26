@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDaumPostcodePopup } from 'react-daum-postcode';
+import { FaLeaf, FaGlobeAmericas, FaCamera } from 'react-icons/fa';
 import Modal from '../../components/Modal';
 import { authApi } from '../../api/auth';
-import { getProfileImageUrl } from '../../utils/image';
 
 const SignupPage = () => {
     const navigate = useNavigate();
@@ -169,84 +169,133 @@ const SignupPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '500px', margin: '4rem auto', marginTop: '140px' }}>
-            <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>회원가입</h1>
+        <div className="min-h-screen py-12 flex flex-col items-center justify-center bg-slate-50 relative z-0">
+            {/* Top subtle background overlay */}
+            <div
+                className="absolute top-0 left-0 w-full h-[50vh] bg-cover bg-center pointer-events-none -z-10"
+                style={{
+                    backgroundImage: 'url(https://images.unsplash.com/photo-1470058869958-2a77ade41c02?q=80&w=2070&auto=format&fit=crop)',
+                    opacity: 0.05,
+                    maskImage: 'linear-gradient(to bottom, black 20%, transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, black 20%, transparent 100%)'
+                }}
+            ></div>
 
-            <div className="card">
-                <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1rem' }}>
-                        <div
-                            style={{
-                                width: '100px',
-                                height: '100px',
-                                backgroundColor: 'transparent',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                position: 'relative'
-                            }}
-                            onClick={() => document.getElementById('profileImageInput')?.click()}
-                        >
-                            {profileImagePreview ? (
-                                <img src={profileImagePreview} alt="Profile Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                            ) : (
-                                <img src={getProfileImageUrl(null)} alt="Default Profile" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                            )}
+            <div className="w-full max-w-[540px] px-4">
+                {/* Header Section */}
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-serif font-bold text-[#1D3130] mb-3">회원가입</h1>
+                    <p className="text-[15px] text-slate-500 font-medium">
+                        친환경 상품, 탄소 절감·기부 내역을 한 눈에 모아보세요.
+                    </p>
+                </div>
+
+                {/* Main Card */}
+                <div className="bg-white border border-[#E4E4E4] rounded-2xl p-8 lg:p-10 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                    <form onSubmit={handleSubmit} className="flex flex-col">
+
+                        {/* Profile Image Upload */}
+                        <div className="flex flex-col items-center mb-10">
+                            <div
+                                className="w-[100px] h-[100px] rounded-full flex items-center justify-center cursor-pointer relative group border-2 border-dashed border-slate-300 hover:border-[#89B18A] transition-colors bg-slate-50 overflow-hidden"
+                                onClick={() => document.getElementById('profileImageInput')?.click()}
+                            >
+                                {profileImagePreview ? (
+                                    <img src={profileImagePreview} alt="Profile Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="flex items-center justify-center text-[#89B18A] text-4xl">
+                                        <FaGlobeAmericas className="absolute right-3 bottom-2 text-2xl text-[#89B18A]/50 z-0" />
+                                        <FaLeaf className="relative z-10" />
+                                    </div>
+                                )}
+
+                                {/* Overlay on hover */}
+                                <div className="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center transition-all z-20">
+                                    <FaCamera className="text-white text-2xl" />
+                                </div>
+                            </div>
+                            <input
+                                id="profileImageInput"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="hidden"
+                            />
+                            <span className="text-[13px] text-slate-500 font-medium mt-3">프로필 이미지 (선택)</span>
                         </div>
-                        <input
-                            id="profileImageInput"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            style={{ display: 'none' }}
-                        />
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>프로필 이미지 (선택)</span>
-                    </div>
 
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>이메일</label>
-                        <input name="email" type="email" value={formData.email} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>비밀번호</label>
-                        <input name="password" type="password" value={formData.password} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>이름</label>
-                        <input name="name" type="text" value={formData.name} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>닉네임</label>
-                        <input name="nickname" type="text" value={formData.nickname} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>전화번호</label>
-                        <input name="phoneNum" type="tel" value={formData.phoneNum} onChange={handleChange} placeholder="010-0000-0000" required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>주소</label>
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                            <input name="address" type="text" value={formData.address} onChange={handleChange} required readOnly={!mapError} style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: mapError ? 'white' : '#f1f5f9' }} placeholder={mapError ? "주소를 직접 입력해주세요" : "주소 검색 버튼을 눌러주세요"} />
-                            <button type="button" onClick={handleSearchAddress} className="btn btn-outline" style={{ whiteSpace: 'nowrap' }} disabled={!isMapLoaded && !mapError}>
-                                {isMapLoaded ? "주소 검색" : mapError ? "수동 입력" : "로딩 중..."}
+                        {/* Section 1: Basic Info */}
+                        <div className="mb-10">
+                            <h3 className="text-[17px] font-bold text-slate-800 mb-5 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#1D3130] block"></span>
+                                기본 정보
+                            </h3>
+                            <div className="flex flex-col gap-5">
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[14px] text-slate-700 font-medium">이메일</label>
+                                    <input name="email" type="email" value={formData.email} onChange={handleChange} required className="w-full p-[14px] border border-slate-200 rounded-[8px] focus:outline-none focus:border-[#89B18A] focus:ring-1 focus:ring-[#89B18A] transition-all text-[15px] bg-slate-50 focus:bg-white" placeholder="example@mossy.com" />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[14px] text-slate-700 font-medium">비밀번호</label>
+                                    <input name="password" type="password" value={formData.password} onChange={handleChange} required className="w-full p-[14px] border border-slate-200 rounded-[8px] focus:outline-none focus:border-[#89B18A] focus:ring-1 focus:ring-[#89B18A] transition-all text-[15px] bg-slate-50 focus:bg-white" placeholder="비밀번호 입력" />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[14px] text-slate-700 font-medium">이름</label>
+                                    <input name="name" type="text" value={formData.name} onChange={handleChange} required className="w-full p-[14px] border border-slate-200 rounded-[8px] focus:outline-none focus:border-[#89B18A] focus:ring-1 focus:ring-[#89B18A] transition-all text-[15px] bg-slate-50 focus:bg-white" placeholder="실명 입력" />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[14px] text-slate-700 font-medium">닉네임</label>
+                                    <input name="nickname" type="text" value={formData.nickname} onChange={handleChange} required className="w-full p-[14px] border border-slate-200 rounded-[8px] focus:outline-none focus:border-[#89B18A] focus:ring-1 focus:ring-[#89B18A] transition-all text-[15px] bg-slate-50 focus:bg-white" placeholder="모시에서 사용할 이름" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 2: Contact & Address */}
+                        <div className="mb-6">
+                            <h3 className="text-[17px] font-bold text-slate-800 mb-5 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#1D3130] block"></span>
+                                연락처 및 배송지
+                            </h3>
+                            <div className="flex flex-col gap-5">
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[14px] text-slate-700 font-medium">전화번호</label>
+                                    <input name="phoneNum" type="tel" value={formData.phoneNum} onChange={handleChange} placeholder="010-0000-0000" required className="w-full p-[14px] border border-slate-200 rounded-[8px] focus:outline-none focus:border-[#89B18A] focus:ring-1 focus:ring-[#89B18A] transition-all text-[15px] bg-slate-50 focus:bg-white" />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[14px] text-slate-700 font-medium">주소</label>
+                                    <div className="flex gap-2 items-center">
+                                        <input name="address" type="text" value={formData.address} onChange={handleChange} required readOnly={!mapError} className={`flex-1 p-[14px] border border-slate-200 rounded-[8px] focus:outline-none focus:border-[#89B18A] focus:ring-1 focus:ring-[#89B18A] transition-all text-[15px] ${mapError ? 'bg-white' : 'bg-slate-100 text-slate-600'}`} placeholder={mapError ? "주소를 직접 입력해주세요" : "주소 검색 버튼을 눌러주세요"} />
+                                        <button type="button" onClick={handleSearchAddress} className="px-5 py-[14px] rounded-[8px] border border-[#1D3130] text-[#1D3130] font-medium hover:bg-slate-50 transition-colors whitespace-nowrap text-[14px]" disabled={!isMapLoaded && !mapError}>
+                                            {isMapLoaded ? "주소 검색" : mapError ? "수동 입력" : "로딩 중..."}
+                                        </button>
+                                    </div>
+                                    {mapError && <div className="text-red-500 text-[13px] mt-1">지도 서비스를 불러올 수 없습니다. 주소를 직접 입력해주세요.</div>}
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[14px] text-slate-700 font-medium flex items-center justify-between">
+                                        주민번호 (7자리)
+                                        <span className="text-[12px] text-slate-400 font-normal">* 실명 인증 및 정산용</span>
+                                    </label>
+                                    <input name="rrn" type="text" value={formData.rrn} onChange={handleChange} placeholder="900101-1" required className="w-full p-[14px] border border-slate-200 rounded-[8px] focus:outline-none focus:border-[#89B18A] focus:ring-1 focus:ring-[#89B18A] transition-all text-[15px] bg-slate-50 focus:bg-white" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {error && <div className="text-red-500 text-[14px] font-medium text-center bg-red-50 p-3 rounded-lg mb-4">{error}</div>}
+
+                        {/* Divider */}
+                        <hr className="my-8 border-slate-100" />
+
+                        {/* Submit Button */}
+                        <div className="flex justify-center mt-4">
+                            <button type="submit" className="w-fit px-12 py-[16px] bg-[#3B5240] text-white rounded-full font-bold text-[17px] hover:bg-[#2d4031] transition-colors shadow-lg shadow-[#3B5240]/10 active:scale-[0.98]">
+                                가입하기
                             </button>
                         </div>
-                        {mapError && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginTop: '0.5rem' }}>지도 서비스를 불러올 수 없습니다. 주소를 직접 입력해주세요.</div>}
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>주민번호 (7자리)</label>
-                        <input name="rrn" type="text" value={formData.rrn} onChange={handleChange} placeholder="900101-1" required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>* 실명 인증 및 정산용</span>
-                    </div>
 
-                    {error && <div style={{ color: 'var(--danger-color)', fontSize: '0.9rem' }}>{error}</div>}
-
-                    <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem', borderRadius: '50px' }}>
-                        가입하기
-                    </button>
-                </form>
-            </div >
+                    </form>
+                </div>
+            </div>
             <Modal
                 isOpen={showSuccessModal}
                 title="회원가입 완료"

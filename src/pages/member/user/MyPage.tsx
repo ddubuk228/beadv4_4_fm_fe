@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaPen } from 'react-icons/fa';
+import { FaPen, FaWallet, FaTicketAlt, FaHeart, FaLeaf, FaFileInvoice } from 'react-icons/fa';
 import { memberApi } from '../../../api/member';
 import { walletApi, type UserWalletResponseDto } from '../../../api/wallet';
 import ProfileEditPage from '../../product/ProfileEditPage';
@@ -204,8 +204,8 @@ const MyPage = () => {
     const navItemStyle = (tabId: TabType) => ({
         display: 'block',
         padding: '0.75rem 1rem',
-        color: activeTab === tabId ? 'var(--primary-color)' : '#475569',
-        backgroundColor: activeTab === tabId ? '#f0fdf4' : 'transparent',
+        color: activeTab === tabId ? '#3B5240' : '#64748b',
+        backgroundColor: activeTab === tabId ? '#e8faeb' : 'transparent',
         textDecoration: 'none',
         fontWeight: activeTab === tabId ? 700 : 500,
         borderRadius: '6px',
@@ -310,9 +310,8 @@ const MyPage = () => {
             case 'orders':
                 // App.tsx에서 사용하는 OrdersPage를 마이페이지 내부 탭에서도 렌더링
                 return (
-                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
-                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>주문 내역</h3>
-                        <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#F8FAF8', border: 'none', borderRadius: '24px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1.5rem 0', fontWeight: 700, color: '#3B5240' }}>주문 내역</h3>
 
                         <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem', alignItems: 'center' }}>
                             {/* 기간 선택 (시작일 - 종료일) */}
@@ -334,6 +333,13 @@ const MyPage = () => {
                                 />
                             </div>
 
+                        {/* Order List Empty State */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6rem 0', color: '#64748b' }}>
+                            <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
+                                <FaFileInvoice style={{ fontSize: '3.5rem', color: '#e2e8f0' }} />
+                                <FaLeaf style={{ position: 'absolute', bottom: '-4px', right: '-8px', fontSize: '1.5rem', color: '#3B5240' }} />
+                            </div>
+                            <div style={{ fontSize: '1.05rem', fontWeight: 500 }}>아직 주문이 없어요. 친환경 상품을 만나보세요.</div>
                             {/* 주문 상태 필터 */}
                             <select
                                 className="form-select"
@@ -370,17 +376,21 @@ const MyPage = () => {
                 );
             case 'profile':
                 return (
-                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#F8FAF8', border: 'none', borderRadius: '24px', minHeight: '600px' }}>
                         <ProfileEditPage initialEmail={user.email} />
                     </div>
                 );
             case 'likes':
-                return <WishlistTab />;
+                return (
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#F8FAF8', border: 'none', borderRadius: '24px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1.5rem 0', fontWeight: 700, color: '#3B5240' }}>찜 한 상품</h3>
+                        <div style={{ textAlign: 'center', padding: '4rem 0', color: '#64748b' }}>찜 한 상품이 없습니다.</div>
+                    </div>
+                );
             case 'reviews':
                 return (
-                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
-                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>내 리뷰 관리</h3>
-                        <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#F8FAF8', border: 'none', borderRadius: '24px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1.5rem 0', fontWeight: 700, color: '#3B5240' }}>내 리뷰 관리</h3>
 
                         {/* 작성 가능한 리뷰 (Pending) */}
                         <div style={{ marginBottom: '3rem' }}>
@@ -474,9 +484,8 @@ const MyPage = () => {
                 );
             case 'wallet':
                 return (
-                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
-                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>예치금 관리</h3>
-                        <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#F8FAF8', border: 'none', borderRadius: '24px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1.5rem 0', fontWeight: 700, color: '#3B5240' }}>예치금 관리</h3>
                         <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--primary-color)', marginBottom: '1rem', textAlign: 'center', padding: '2rem 0' }}>
                             {balance.toLocaleString()}원
                         </div>
@@ -487,9 +496,8 @@ const MyPage = () => {
                 );
             case 'donation':
                 return (
-                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
-                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>나의 기부 내역</h3>
-                        <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#F8FAF8', border: 'none', borderRadius: '24px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1.5rem 0', fontWeight: 700, color: '#3B5240' }}>나의 기부 내역</h3>
 
                         {donationSummary && (
                             <div style={{ backgroundColor: '#f0fdf4', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem', display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
@@ -554,9 +562,8 @@ const MyPage = () => {
                 );
             case 'coupon':
                 return (
-                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#ffffff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', borderRadius: '12px', minHeight: '600px' }}>
-                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1rem 0', fontWeight: 700, color: '#1e293b' }}>보유 쿠폰</h3>
-                        <div style={{ borderBottom: '2px solid #1e293b', marginBottom: '1.5rem' }}></div>
+                    <div className="card" style={{ padding: '2.5rem 2rem', backgroundColor: '#F8FAF8', border: 'none', borderRadius: '24px', minHeight: '600px' }}>
+                        <h3 style={{ fontSize: '1.25rem', margin: '0 0 1.5rem 0', fontWeight: 700, color: '#3B5240' }}>보유 쿠폰</h3>
 
                         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem' }}>
                             <select
@@ -648,7 +655,7 @@ const MyPage = () => {
     };
 
     return (
-        <div style={{ backgroundColor: '#fafaf9', minHeight: '100vh', paddingTop: '140px', paddingBottom: '4rem' }}>
+        <div style={{ backgroundColor: '#fafaf9', minHeight: '100vh', paddingTop: '90px', paddingBottom: '4rem' }}>
             <div className="container" style={{ maxWidth: '1024px', margin: '0 auto', padding: '0 1rem' }}>
 
                 {/* 1. Top Section - 3 Metrics Cards */}
@@ -656,40 +663,47 @@ const MyPage = () => {
 
                     {/* 예치금 */}
                     <div
-                        className="card"
                         onClick={() => setActiveTab('wallet')}
-                        style={{ padding: '2rem 1.75rem', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: activeTab === 'wallet' ? '2px solid var(--primary-color)' : '2px solid transparent', borderRadius: '24px', cursor: 'pointer', transition: 'all 0.2s', minHeight: '160px' }}
+                        className={`transition-all duration-200 cursor-pointer ${activeTab === 'wallet' ? 'bg-[#e8faeb] border-2 border-[#3B5240] -translate-y-1 shadow-md' : 'bg-[#F8FAF8] border-2 border-transparent hover:-translate-y-1 hover:shadow-sm'}`}
+                        style={{ padding: '2rem 1.75rem', display: 'flex', flexDirection: 'column', borderRadius: '24px', minHeight: '160px' }}
                     >
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'auto' }}>
-                            <h3 style={{ fontSize: '1.1rem', margin: 0, fontWeight: 700, color: '#1e293b' }}>예치금</h3>
-                            <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem', color: 'var(--primary-color)', fontWeight: 600 }}>MossyCash</span>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'auto', gap: '8px' }}>
+                            <FaWallet style={{ color: '#3B5240', fontSize: '1.2rem' }} />
+                            <h3 style={{ fontSize: '1.1rem', margin: 0, fontWeight: 700, color: '#3B5240' }}>예치금</h3>
+                            <span style={{ fontSize: '0.75rem', marginLeft: '0.5rem', color: '#3B5240', fontWeight: 600 }}>MossyCash</span>
                         </div>
-                        <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#0f172a' }}>
-                            {balance.toLocaleString()}<span style={{ fontSize: '1rem', fontWeight: 500, marginLeft: '4px' }}>원</span>
+                        <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#3B5240' }}>
+                            {balance.toLocaleString()}<span style={{ fontSize: '1.1rem', fontWeight: 600, marginLeft: '4px' }}>원</span>
                         </div>
                     </div>
 
                     {/* 보유 쿠폰 */}
                     <div
-                        className="card"
                         onClick={() => setActiveTab('coupon')}
-                        style={{ padding: '2rem 1.75rem', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: activeTab === 'coupon' ? '2px solid var(--primary-color)' : '2px solid transparent', borderRadius: '24px', cursor: 'pointer', transition: 'all 0.2s', minHeight: '160px' }}
+                        className={`transition-all duration-200 cursor-pointer ${activeTab === 'coupon' ? 'bg-[#e8faeb] border-2 border-[#3B5240] -translate-y-1 shadow-md' : 'bg-[#F8FAF8] border-2 border-transparent hover:-translate-y-1 hover:shadow-sm'}`}
+                        style={{ padding: '2rem 1.75rem', display: 'flex', flexDirection: 'column', borderRadius: '24px', minHeight: '160px' }}
                     >
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', margin: 0, marginBottom: 'auto' }}>보유 쿠폰</h3>
-                        <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#0f172a' }}>
-                            {totalCoupons}<span style={{ fontSize: '1rem', fontWeight: 500, marginLeft: '4px' }}>개</span>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'auto', gap: '8px' }}>
+                            <FaTicketAlt style={{ color: '#3B5240', fontSize: '1.2rem' }} />
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#3B5240', margin: 0 }}>보유 쿠폰</h3>
+                        </div>
+                        <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#3B5240' }}>
+                            {totalCoupons}<span style={{ fontSize: '1.1rem', fontWeight: 600, marginLeft: '4px' }}>개</span>
                         </div>
                     </div>
 
                     {/* 이번달 기부금 */}
                     <div
-                        className="card"
                         onClick={() => setActiveTab('donation')}
-                        style={{ padding: '2rem 1.75rem', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: activeTab === 'donation' ? '2px solid var(--primary-color)' : '2px solid transparent', borderRadius: '24px', cursor: 'pointer', transition: 'all 0.2s', minHeight: '160px' }}
+                        className={`transition-all duration-200 cursor-pointer ${activeTab === 'donation' ? 'bg-[#e8faeb] border-2 border-[#3B5240] -translate-y-1 shadow-md' : 'bg-[#F8FAF8] border-2 border-transparent hover:-translate-y-1 hover:shadow-sm'}`}
+                        style={{ padding: '2rem 1.75rem', display: 'flex', flexDirection: 'column', borderRadius: '24px', minHeight: '160px' }}
                     >
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', margin: 0, marginBottom: 'auto' }}>이번달 기부금</h3>
-                        <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#0f172a' }}>
-                            {donationSummary?.totalAmount ? donationSummary.totalAmount.toLocaleString() : 0}<span style={{ fontSize: '1rem', fontWeight: 500, marginLeft: '4px' }}>원</span>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'auto', gap: '8px' }}>
+                            <FaHeart style={{ color: '#3B5240', fontSize: '1.2rem' }} />
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#3B5240', margin: 0 }}>이번달 기부금</h3>
+                        </div>
+                        <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#3B5240' }}>
+                            {donationSummary?.totalAmount ? donationSummary.totalAmount.toLocaleString() : 0}<span style={{ fontSize: '1.1rem', fontWeight: 600, marginLeft: '4px' }}>원</span>
                         </div>
                     </div>
                 </div>
@@ -702,9 +716,9 @@ const MyPage = () => {
                         <div className="card" style={{ backgroundColor: '#ffffff', padding: '1.5rem 0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: 'none', borderRadius: '12px', minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
 
                             {/* Profile Header */}
-                            <div style={{ padding: '0 1.5rem', marginBottom: '1.5rem', textAlign: 'left' }}>
-                                <div style={{ fontSize: '1rem', color: '#64748b', fontWeight: 500, marginBottom: '0.5rem' }}>반가워요!</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                            <div style={{ padding: '1.25rem', margin: '0 1rem 1rem 1rem', textAlign: 'left', backgroundColor: '#F8FAF8', borderRadius: '12px' }}>
+                                <div style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 500, marginBottom: '0.25rem' }}>반가워요!</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                                     <div
                                         onClick={() => fileInputRef.current?.click()}
                                         style={{ position: 'relative', cursor: isUploadingImage ? 'not-allowed' : 'pointer', opacity: isUploadingImage ? 0.5 : 1 }}
@@ -746,8 +760,7 @@ const MyPage = () => {
                                     <div style={{ fontWeight: 700, fontSize: '1.25rem', color: '#1e293b' }}>{user.nickname || user.name}님</div>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '0.5rem' }}>
-                                    <button onClick={() => setActiveTab('reviews')} style={{ fontSize: '0.85rem', color: activeTab === 'reviews' ? 'var(--primary-color)' : '#475569', backgroundColor: activeTab === 'reviews' ? '#f0fdf4' : '#f1f5f9', border: 'none', padding: '0.5rem 0.9rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>내 리뷰</button>
-                                    <button onClick={() => setActiveTab('profile')} style={{ fontSize: '0.85rem', color: activeTab === 'profile' ? 'var(--primary-color)' : '#475569', backgroundColor: activeTab === 'profile' ? '#f0fdf4' : '#f1f5f9', border: 'none', padding: '0.5rem 0.9rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>내 정보 설정</button>
+                                    <button onClick={() => setActiveTab('profile')} style={{ fontSize: '0.85rem', color: activeTab === 'profile' ? '#3B5240' : '#475569', backgroundColor: activeTab === 'profile' ? '#e8faeb' : '#ffffff', border: activeTab === 'profile' ? 'none' : '1px solid #e2e8f0', padding: '0.4rem 0.8rem', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>내 정보 설정</button>
                                 </div>
                             </div>
 
@@ -766,7 +779,7 @@ const MyPage = () => {
                             {/* Bottom Seller Menus */}
                             <nav style={{ padding: '0 1rem', marginTop: '2rem' }}>
                                 {(user as any).sellerStatus === 'APPROVED' ? (
-                                    <Link to="/myshop" style={{ display: 'block', padding: '0.75rem 1rem', color: '#ffffff', textDecoration: 'none', fontWeight: 600, borderRadius: '50px', backgroundColor: 'var(--primary-color)', textAlign: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                    <Link to="/myshop" style={{ display: 'block', padding: '12px 1rem', color: '#ffffff', textDecoration: 'none', fontWeight: 600, borderRadius: '9999px', backgroundColor: '#3B5240', textAlign: 'center', transition: 'background-color 0.2s', fontSize: '0.95rem' }}>
                                         나의 상점 관리 (판매자)
                                     </Link>
                                 ) : (user as any).sellerStatus === 'PENDING' ? (

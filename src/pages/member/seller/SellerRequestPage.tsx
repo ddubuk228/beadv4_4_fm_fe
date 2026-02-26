@@ -148,10 +148,10 @@ const SellerRequestPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '600px', margin: '0 auto', paddingTop: '140px', paddingBottom: '4rem' }}>
-            <h1 className="text-4xl font-serif font-bold text-primary-color text-center" style={{ marginBottom: '50px' }}>판매자 신청</h1>
+        <div style={{ maxWidth: '600px', margin: '0 auto', paddingTop: '90px', paddingBottom: '4rem' }}>
+            <h1 className="text-4xl font-serif font-bold text-[#1B3A2D] text-center" style={{ marginBottom: '50px' }}>판매자 신청</h1>
 
-            <div className="card">
+            <div className="card" style={{ border: '1px solid #E0EDE6', backgroundColor: '#FFFFFF' }}>
                 <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
 
                     {/* Profile Image */}
@@ -161,8 +161,8 @@ const SellerRequestPage = () => {
                                 width: '100px',
                                 height: '100px',
                                 borderRadius: '50%',
-                                backgroundColor: '#f1f5f9',
-                                border: '1px solid #e2e8f0',
+                                backgroundColor: '#D6E8DF',
+                                border: '1px solid #E0EDE6',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -172,14 +172,14 @@ const SellerRequestPage = () => {
                                 {profileImagePreview ? (
                                     <img src={profileImagePreview} alt="Profile Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
-                                    <img src={getProfileImageUrl('default-seller')} alt="Default Profile" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                    <img src={getProfileImageUrl('default-seller')} alt="Default Profile" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'brightness(0.2)' }} />
                                 )}
                             </div>
                             <div style={{
                                 position: 'absolute',
                                 bottom: '0',
                                 right: '0',
-                                backgroundColor: 'var(--primary-color)',
+                                backgroundColor: '#1B3A2D',
                                 color: 'white',
                                 width: '32px',
                                 height: '32px',
@@ -200,17 +200,29 @@ const SellerRequestPage = () => {
                             onChange={handleImageChange}
                             style={{ display: 'none' }}
                         />
-                        <span style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>스토어 프로필 (선택)</span>
+                        <span style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: '#64748b' }}>스토어 프로필 (선택)</span>
                     </div>
 
                     {/* Seller Type - Select */}
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>판매자 유형</label>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#1B3A2D' }}>판매자 유형</label>
                         <select
                             name="sellerType"
                             value={formData.sellerType}
                             onChange={handleChange}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'white', appearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right .7em top 50%', backgroundSize: '.65em auto' }}
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                borderRadius: 'var(--radius-md)',
+                                border: '1px solid var(--border-color)',
+                                backgroundColor: 'white',
+                                color: '#1B3A2D',
+                                appearance: 'none',
+                                backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231B3A2D%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right .7em top 50%',
+                                backgroundSize: '.65em auto'
+                            }}
                         >
                             <option value="INDIVIDUAL">개인 판매자 (INDIVIDUAL)</option>
                             <option value="BUSINESS">법인 판매자 (BUSINESS)</option>
@@ -219,51 +231,125 @@ const SellerRequestPage = () => {
 
                     {/* Store Info */}
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>상호명 (Store Name)</label>
-                        <input name="storeName" value={formData.storeName} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
+                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#1B3A2D', fontWeight: 500 }}>상호명 (Store Name)</label>
+                        <input
+                            name="storeName"
+                            value={formData.storeName}
+                            onChange={handleChange}
+                            required
+                            className="focus:border-[#1B3A2D] focus:ring-0"
+                            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', outline: 'none' }}
+                        />
                     </div>
                     {formData.sellerType === 'BUSINESS' && (
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>사업자 등록번호</label>
-                            <input name="businessNum" value={formData.businessNum} onChange={handleChange} required placeholder="000-00-00000" style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#1B3A2D', fontWeight: 500 }}>사업자 등록번호</label>
+                            <input
+                                name="businessNum"
+                                value={formData.businessNum}
+                                onChange={handleChange}
+                                required
+                                placeholder="000-00-00000"
+                                className="focus:border-[#1B3A2D] focus:ring-0"
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', outline: 'none' }}
+                            />
                         </div>
                     )}
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>대표자명</label>
-                        <input name="representativeName" value={formData.representativeName} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
+                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#1B3A2D', fontWeight: 500 }}>대표자명</label>
+                        <input
+                            name="representativeName"
+                            value={formData.representativeName}
+                            onChange={handleChange}
+                            required
+                            className="focus:border-[#1B3A2D] focus:ring-0"
+                            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', outline: 'none' }}
+                        />
                     </div>
 
-                    <hr style={{ margin: '1rem 0', border: 0, borderTop: '1px solid var(--border-color)' }} />
+                    <hr style={{ margin: '1rem 0', border: 0, borderTop: '1px solid #E0EDE6' }} />
 
                     {/* Contact Info */}
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>연락처 이메일</label>
-                        <input name="contactEmail" type="email" value={formData.contactEmail} onChange={handleChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
+                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#1B3A2D', fontWeight: 500 }}>연락처 이메일</label>
+                        <input
+                            name="contactEmail"
+                            type="email"
+                            value={formData.contactEmail}
+                            onChange={handleChange}
+                            required
+                            className="focus:border-[#1B3A2D] focus:ring-0"
+                            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', outline: 'none' }}
+                        />
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>연락처 전화번호</label>
-                        <input name="contactPhone" type="tel" value={formData.contactPhone} onChange={handleChange} required placeholder="010-0000-0000" style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
+                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#1B3A2D', fontWeight: 500 }}>연락처 전화번호</label>
+                        <input
+                            name="contactPhone"
+                            type="tel"
+                            value={formData.contactPhone}
+                            onChange={handleChange}
+                            required
+                            placeholder="010-0000-0000"
+                            className="focus:border-[#1B3A2D] focus:ring-0"
+                            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', outline: 'none' }}
+                        />
                     </div>
 
-                    <hr style={{ margin: '1rem 0', border: 0, borderTop: '1px solid var(--border-color)' }} />
+                    <hr style={{ margin: '1rem 0', border: 0, borderTop: '1px solid #E0EDE6' }} />
 
                     {/* Address */}
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>사업장 주소</label>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', color: '#1B3A2D', fontWeight: 500 }}>사업장 주소</label>
                         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                            <input name="address1" value={formData.address1} onChange={handleChange} required readOnly={!mapError} placeholder="기본 주소" style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: mapError ? 'white' : '#f1f5f9' }} />
-                            <button type="button" onClick={handleSearchAddress} className="btn btn-outline" style={{ whiteSpace: 'nowrap' }} disabled={!isMapLoaded && !mapError}>
+                            <input
+                                name="address1"
+                                value={formData.address1}
+                                onChange={handleChange}
+                                required
+                                readOnly={!mapError}
+                                placeholder="기본 주소"
+                                style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: mapError ? 'white' : '#f8fafc', outline: 'none' }}
+                            />
+                            <button
+                                type="button"
+                                onClick={handleSearchAddress}
+                                className="btn"
+                                style={{ whiteSpace: 'nowrap', border: '1px solid #1B3A2D', color: '#1B3A2D', backgroundColor: 'transparent', padding: '0 1rem', borderRadius: 'var(--radius-md)' }}
+                                disabled={!isMapLoaded && !mapError}
+                            >
                                 {isMapLoaded ? "주소 검색" : mapError ? "수동 입력" : "로딩 중..."}
                             </button>
                         </div>
                         {mapError && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>⚠️ 지도 API 설정(키/도메인) 문제로 자동 입력이 불가능합니다. 주소를 직접 입력해주세요.</div>}
 
-                        <input name="address2" value={formData.address2} onChange={handleChange} required placeholder="상세 주소 (예: 101호)" style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }} />
+                        <input
+                            name="address2"
+                            value={formData.address2}
+                            onChange={handleChange}
+                            required
+                            placeholder="상세 주소 (예: 101호)"
+                            className="focus:border-[#1B3A2D] focus:ring-0"
+                            style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', outline: 'none' }}
+                        />
                     </div>
 
                     {error && <div style={{ color: 'var(--danger-color)', fontSize: '0.9rem' }}>{error}</div>}
 
-                    <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+                    <button
+                        type="submit"
+                        className="btn"
+                        style={{
+                            marginTop: '1rem',
+                            backgroundColor: '#1B3A2D',
+                            color: 'white',
+                            borderRadius: '9999px',
+                            padding: '0.8rem',
+                            fontWeight: 'bold',
+                            border: 'none',
+                            cursor: 'pointer'
+                        }}
+                    >
                         신청하기
                     </button>
                 </form>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { isTokenExpired } from '../utils/auth';
 
 const client = axios.create({
     baseURL: '/api/v1',
@@ -26,22 +27,44 @@ const parseJwt = (token: string) => {
 // Request interceptor to add token and custom headers
 client.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('accessToken');
-        const isAuthRequest = config.url?.includes('/auth/') || config.url?.includes('/users/signup');
+        let token = localStorage.getItem('accessToken');
 
-        if (token && !isAuthRequest) {
-            config.headers['Authorization'] = `Bearer ${token}`;
+        // Handle common string traps from local storage
+        if (token === 'null' || token === 'undefined') {
+            token = null;
+            localStorage.removeItem('accessToken');
+        }
 
-            // JWT 토큰을 파싱하여 백엔드가 요구하는 커스텀 헤더(X-User-Id, X-Seller-Id) 주입
-            const decodedPayload = parseJwt(token);
-            if (decodedPayload) {
-                if (decodedPayload.sub) {
-                    config.headers['X-User-Id'] = decodedPayload.sub;
-                }
-                if (decodedPayload.seller_id) {
-                    config.headers['X-Seller-Id'] = decodedPayload.seller_id;
-                }
+        const url = config.url || '';
+        const isAuthRequest = url.includes('/auth/') || url.includes('/users/signup');
+        // Public routes that don't REQUIRE a token (but will use one if available)
+        const isPublicGetRequest = config.method === 'get' && (
+            url.includes('/products') ||
+            url.includes('/categories') ||
+            url.includes('/market')
+        );
+        const isPublicRoute = isAuthRequest || isPublicGetRequest || url === '/' || url === '';
+
+        if (token) {
+            if (isTokenExpired(token)) {
+                console.warn("[Auth] Token expired in interceptor. Redirecting to login.");
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('nickname');
+                window.location.href = '/login';
+                return Promise.reject(new Error('Token expired'));
             }
+
+            // Ensure headers object exists and add Authorization
+            config.headers = config.headers || {};
+            config.headers['Authorization'] = `Bearer ${token.trim()}`;
+            console.log(`[Auth] Header added to ${url}`);
+        } else if (!isPublicRoute) {
+            console.warn(`[Auth] Missing token for private route: ${url}. Blocking request.`);
+            // If we are already on login/signup, don't redirect again in a loop
+            if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup')) {
+                window.location.href = '/login';
+            }
+            return Promise.reject(new Error('Authentication required'));
         }
 
         // If data is FormData, let the browser set the Content-Type with boundary
@@ -91,8 +114,8 @@ client.interceptors.response.use(
             console.warn("Unauthorized error or Token Expired. Token cleared.");
             localStorage.removeItem('accessToken');
             localStorage.removeItem('nickname');
-            alert('인증이 만료되었습니다. 다시 로그인해주세요.');
-            window.location.href = '/login';
+            // Use replace to avoid browser popup state if possible
+            window.location.replace('/login');
         }
         return Promise.reject(error);
     }

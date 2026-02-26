@@ -22,6 +22,8 @@ import SellerLayout from './components/layout/SellerLayout';
 import SellerOrderDetailPage from './pages/member/seller/SellerOrderDetailPage';
 import SellerCouponPage from './pages/member/seller/SellerCouponPage';
 import SellerOrderPage from './pages/member/seller/SellerOrderPage';
+import RequireRole from './components/auth/RequireRole';
+import UnauthorizedPage from './pages/error/UnauthorizedPage';
 
 function App() {
   return (
@@ -35,7 +37,11 @@ function App() {
         <Route path="cart" element={<CartPage />} />
         <Route path="mypage" element={<MyPage />} />
         <Route path="profile/edit" element={<ProfileEditPage />} />
-        <Route path="admin" element={<AdminPage />} />
+        <Route path="admin/dashboard" element={
+          <RequireRole allowedRoles={['ROLE_ADMIN', 'ADMIN']}>
+            <AdminPage />
+          </RequireRole>
+        } />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="orders/:id" element={<OrderDetailPage />} />
         <Route path="wallet" element={<WalletPage />} />
@@ -44,9 +50,14 @@ function App() {
         <Route path="payment/fail" element={<PaymentFailPage />} />
         <Route path="auth/callback" element={<AuthCallbackPage />} />
         <Route path="signup/complete" element={<SignupCompletePage />} />
+        <Route path="unauthorized" element={<UnauthorizedPage />} />
       </Route>
 
-      <Route path="/myshop" element={<SellerLayout />}>
+      <Route path="/myshop" element={
+        <RequireRole allowedRoles={['USER', 'SELLER']} requireAll={true}>
+          <SellerLayout />
+        </RequireRole>
+      }>
         <Route index element={<SellerOrderPage />} />
         <Route path="orders" element={<SellerOrderPage />} />
         <Route path="orders/:id" element={<SellerOrderDetailPage />} />
