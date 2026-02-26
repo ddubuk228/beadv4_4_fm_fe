@@ -13,6 +13,16 @@ export interface UserCouponResponse {
     status: 'UNUSED' | 'USED' | 'EXPIRED';
 }
 
+export interface DownloadableCouponResponse {
+    couponId: number;
+    couponName: string;
+    couponType: CouponType;
+    discountValue: number;
+    maxDiscountAmount: number | null;
+    startAt: string;
+    endAt: string;
+}
+
 export interface SellerCouponListResponse {
     couponId: number;
     productItemId: number;
@@ -86,6 +96,20 @@ export const couponApi = {
                 sort: 'createdAt,desc'
             }
         });
+        return response.data;
+    },
+
+    // 상품 상세: 다운로드 가능한 쿠폰 목록 조회
+    getDownloadableCoupons: async (productItemId: number) => {
+        const response = await client.get<RsData<DownloadableCouponResponse[]>>('/coupons', {
+            params: { productItemId }
+        });
+        return response.data;
+    },
+
+    // 쿠폰 다운로드
+    downloadCoupon: async (couponId: number) => {
+        const response = await client.post<RsData<void>>(`/coupons/${couponId}/download`);
         return response.data;
     },
 
