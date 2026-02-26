@@ -71,7 +71,7 @@ jobs:
               "git clone https://github.com/${{ github.repository }}.git beadv4_4_fm_fe",
               "cd beadv4_4_fm_fe",
               "kubectl apply -f k8s/frontend.yaml",
-              "kubectl rollout restart deployment frontend-service -n mossy" # mossy로 재시작
+              "kubectl rollout restart deployment frontend-service -n mossy"
             ]
           }
           EOF
