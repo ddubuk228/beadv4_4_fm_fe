@@ -50,14 +50,33 @@ const ProductDetailPage = () => {
     // 선택된 옵션에 일치하는 상품 아이템 찾기
     const selectedItem = useMemo<ProductItem | null>(() => {
         if (!product?.mainProduct?.productItems) return null;
+
+        // 옵션 그룹이 아예 없는 상품 처리
+        if (!product.mainProduct.optionGroups || product.mainProduct.optionGroups.length === 0) {
+            if (product.mainProduct.productItems.length === 1) {
+                // 단일 아이템이면 자동 선택
+                return product.mainProduct.productItems[0] || null;
+            } else if (selectedOptions['__itemId']) {
+                // 아이템이 여러 개면 ID로 검색해서 선택
+                return product.mainProduct.productItems.find(item => item.productItemsId.toString() === selectedOptions['__itemId']) || null;
+            }
+            return null;
+        }
+
         return product.mainProduct.productItems.find(
             item => item.optionCombination === selectedOptionString
         ) || null;
-    }, [product, selectedOptionString]);
+    }, [product, selectedOptionString, selectedOptions]);
 
     // 모든 옵션이 선택되었는지 확인
     const isAllOptionsSelected = useMemo(() => {
-        if (!product?.mainProduct?.optionGroups) return true;
+        if (!product?.mainProduct) return false;
+
+        if (!product.mainProduct.optionGroups || product.mainProduct.optionGroups.length === 0) {
+            if (product.mainProduct.productItems.length === 1) return true;
+            return !!selectedOptions['__itemId']; // 옵션 없는 다수 품목인 경우 선택했는지 확인
+        }
+
         return product.mainProduct.optionGroups.every(group => !!selectedOptions[group.name]);
     }, [product, selectedOptions]);
 
@@ -251,7 +270,7 @@ const ProductDetailPage = () => {
                             <p>{catalog?.description}</p>
                         </div>
                         {/* Options Selector */}
-                        {mainProduct?.optionGroups && mainProduct.optionGroups.length > 0 && (
+                        {mainProduct?.optionGroups && mainProduct.optionGroups.length > 0 ? (
                             <div className="space-y-4 mb-8 bg-gray-50 p-6 rounded-2xl border border-gray-100">
                                 <h3 className="font-bold text-gray-800 mb-2">옵션 선택</h3>
                                 {mainProduct.optionGroups.map((group) => (
@@ -270,7 +289,25 @@ const ProductDetailPage = () => {
                                     </div>
                                 ))}
                             </div>
-                        )}
+                        ) : mainProduct?.productItems && mainProduct.productItems.length > 1 ? (
+                            <div className="space-y-4 mb-8 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                                <h3 className="font-bold text-gray-800 mb-2">상품 품목 선택</h3>
+                                <div>
+                                    <select
+                                        value={selectedOptions['__itemId'] || ''}
+                                        onChange={(e) => handleOptionChange('__itemId', e.target.value)}
+                                        className="w-full p-3 border border-gray-200 rounded-xl bg-white outline-none focus:ring-2 focus:ring-[var(--primary-color)] transition-shadow"
+                                    >
+                                        <option value="" disabled>상품을 선택하세요</option>
+                                        {mainProduct.productItems.map((item) => (
+                                            <option key={item.productItemsId} value={item.productItemsId.toString()}>
+                                                {item.optionCombination} - {item.totalPrice.toLocaleString()}원
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        ) : null}
 
                         {isAvailable ? (
                             <>
