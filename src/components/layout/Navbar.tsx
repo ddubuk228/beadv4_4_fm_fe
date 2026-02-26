@@ -4,6 +4,8 @@ import {
     FaShoppingCart, FaSearch, FaBars, FaUser,
     FaCarrot, FaAppleAlt, FaFish, FaDrumstickBite, FaMugHot, FaLeaf, FaWineBottle, FaRecycle, FaHandHoldingHeart
 } from 'react-icons/fa';
+// marketApi import 추가
+import { marketApi } from '../../api/market'; 
 
 const CATEGORIES = [
     { name: '채소', icon: <FaCarrot />, path: '/market?category=vegetables' },
@@ -46,11 +48,28 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const handleSearch = (e: React.FormEvent) => {
+    // handleSearch 함수를 async로 변경하고 marketApi 호출 로직 추가
+    const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (searchTerm.trim()) {
-            navigate(`/market?search=${encodeURIComponent(searchTerm.trim())}`);
-            setSearchTerm('');
+        const keyword = searchTerm.trim();
+        
+        if (keyword) {
+            try {
+                // marketApi.getProducts 호출 (page=0, size=10은 기본값 예시, keyword 전달)
+                const searchResults = await marketApi.getProducts(0, 10, keyword);
+                console.log("검색 결과 데이터:", searchResults);
+
+                // URL 쿼리 파라미터를 search에서 keyword로 변경하고, state로 검색 결과를 같이 넘겨줌
+                navigate(`/market?keyword=${encodeURIComponent(keyword)}`, {
+                    state: { initialData: searchResults }
+                });
+            } catch (error) {
+                console.error("검색 중 오류가 발생했습니다:", error);
+                // 에러가 나더라도 검색어 유지를 위해 이동 시킬지 여부는 기획에 따라 선택
+                navigate(`/market?keyword=${encodeURIComponent(keyword)}`);
+            } finally {
+                setSearchTerm('');
+            }
         }
     };
 
