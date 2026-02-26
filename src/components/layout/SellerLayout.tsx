@@ -1,4 +1,4 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 
 const SellerLayout = () => {
     const navigate = useNavigate();
@@ -19,6 +19,17 @@ const SellerLayout = () => {
         gap: '0.75rem',
         transition: 'background-color 0.2s'
     };
+    const location = useLocation();
+
+    const menuItems = [
+        { name: '상품관리', path: '/myshop/products' },
+        { name: '가격관리', path: '/myshop/prices' },
+        { name: '판매 목록', path: '/myshop/orders' },
+        { name: '정산', path: '/myshop/settlements' },
+        { name: '쿠폰 관리', path: '/myshop/coupons' },
+        { name: '고객관리', path: '/myshop/customers' },
+        { name: '판매자정보', path: '/myshop/info' },
+    ];
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f4f5f7' }}>
@@ -67,26 +78,29 @@ const SellerLayout = () => {
                     paddingTop: '1rem'
                 }}>
                     <nav style={{ display: 'flex', flexDirection: 'column' }}>
-                        <div style={sidebarNavStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>상품관리 ▾</span>
-                        </div>
-                        <div style={sidebarNavStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>가격관리 ▾</span>
-                        </div>
-                        <div
-                            style={{ ...sidebarNavStyle, backgroundColor: 'rgba(255,255,255,0.15)', fontWeight: '700' }}
-                        >
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>주문/배송 ▾</span>
-                        </div>
-                        <div style={sidebarNavStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>정산 ▾</span>
-                        </div>
-                        <div style={sidebarNavStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>고객관리 ▾</span>
-                        </div>
-                        <div style={sidebarNavStyle} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                            <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>판매자정보 ▾</span>
-                        </div>
+                        {menuItems.map((item) => {
+                            const isActive = location.pathname.startsWith(item.path) || (item.name === '판매 목록' && location.pathname === '/myshop'); // 기본 활성 상태 (임시)
+
+                            return (
+                                <Link key={item.name} to={item.path} style={{ textDecoration: 'none' }}>
+                                    <div
+                                        style={{
+                                            ...sidebarNavStyle,
+                                            backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
+                                            fontWeight: isActive ? '700' : '500',
+                                        }}
+                                        onMouseOver={(e) => {
+                                            if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                                        }}
+                                        onMouseOut={(e) => {
+                                            if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '1.05rem', marginLeft: '0.25rem' }}>{item.name}</span>
+                                    </div>
+                                </Link>
+                            )
+                        })}
                     </nav>
 
                     <div style={{ marginTop: 'auto', padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
