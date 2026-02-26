@@ -27,7 +27,7 @@ export interface OrderResponse {
     orderId: number;
     orderNo: string;
     totalPrice: number;
-    state: string;
+    state: string; // OrderState
     itemCount: number;
     address: string;
     createdAt: string;
@@ -41,12 +41,15 @@ export interface OrderDetailResponse {
 }
 
 export interface OrderListSellerResponse {
-    orderDetailId: number;
-    productId: number;
+    orderItemId: number;
+    orderNo: string;
+    productItemId: number;
     quantity: number;
     orderPrice: number;
     state: string; // ENUM: OrderState
     createdAt: string;
+    buyerName: string;
+    deliveryAddress: string;
 }
 
 export const orderApi = {
@@ -65,8 +68,13 @@ export const orderApi = {
         return response.data;
     },
 
-    getSellerOrders: async (page = 0, size = 10) => {
-        const response = await client.get<RsData<{ content: OrderListSellerResponse[], totalPages: number }>>(`/seller/orders?page=${page}&size=${size}`);
+    getSellerOrders: async (page = 0, size = 10, state?: string) => {
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString(),
+            ...(state && state !== 'ALL' && { state })
+        });
+        const response = await client.get<RsData<{ content: OrderListSellerResponse[], totalPages: number }>>(`/seller/orders?${queryParams.toString()}`);
         return response.data;
     }
 };

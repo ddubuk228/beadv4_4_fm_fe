@@ -18,7 +18,6 @@ import SignupCompletePage from './pages/auth/SignupCompletePage';
 import AdminPage from './pages/member/admin/AdminPage';
 import ProfileEditPage from './pages/product/ProfileEditPage';
 import SellerLayout from './components/layout/SellerLayout';
-import SellerDashboardPage from './pages/member/seller/SellerDashboardPage';
 import SellerOrderDetailPage from './pages/member/seller/SellerOrderDetailPage';
 import SellerCouponPage from './pages/member/seller/SellerCouponPage';
 import SellerOrderPage from './pages/member/seller/SellerOrderPage';
@@ -46,7 +45,7 @@ function App() {
       </Route>
 
       <Route path="/myshop" element={<SellerLayout />}>
-        <Route index element={<SellerDashboardPage />} />
+        <Route index element={<SellerOrderPage />} />
         <Route path="orders" element={<SellerOrderPage />} />
         <Route path="orders/:id" element={<SellerOrderDetailPage />} />
         <Route path="coupons" element={<SellerCouponPage />} />

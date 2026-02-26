@@ -24,7 +24,7 @@ const SellerLayout = () => {
     const menuItems = [
         { name: '상품관리', path: '/myshop/products' },
         { name: '가격관리', path: '/myshop/prices' },
-        { name: '주문 관리', path: '/myshop/orders' },
+        { name: '판매 목록', path: '/myshop/orders' },
         { name: '정산', path: '/myshop/settlements' },
         { name: '쿠폰 관리', path: '/myshop/coupons' },
         { name: '고객관리', path: '/myshop/customers' },
@@ -79,7 +79,7 @@ const SellerLayout = () => {
                 }}>
                     <nav style={{ display: 'flex', flexDirection: 'column' }}>
                         {menuItems.map((item) => {
-                            const isActive = location.pathname.startsWith(item.path) || (item.name === '주문 관리' && location.pathname === '/myshop'); // 기본 활성 상태 (임시)
+                            const isActive = location.pathname.startsWith(item.path) || (item.name === '판매 목록' && location.pathname === '/myshop'); // 기본 활성 상태 (임시)
 
                             return (
                                 <Link key={item.name} to={item.path} style={{ textDecoration: 'none' }}>

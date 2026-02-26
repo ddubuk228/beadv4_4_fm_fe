@@ -7,12 +7,13 @@ const SellerOrderPage = () => {
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+    const [filterStatus, setFilterStatus] = useState<string>('ALL');
     const size = 10;
 
     const fetchOrders = async (pageNum: number) => {
         setLoading(true);
         try {
-            const res = await orderApi.getSellerOrders(pageNum, size);
+            const res = await orderApi.getSellerOrders(pageNum, size, filterStatus);
             if (res.data && res.data.content) {
                 setOrders(res.data.content);
                 setTotalPages(res.data.totalPages || 1);
@@ -26,7 +27,11 @@ const SellerOrderPage = () => {
 
     useEffect(() => {
         fetchOrders(page);
-    }, [page]);
+    }, [page, filterStatus]);
+
+    useEffect(() => {
+        setPage(0);
+    }, [filterStatus]);
 
     const navigate = useNavigate();
 
@@ -34,7 +39,7 @@ const SellerOrderPage = () => {
         <div style={{ maxWidth: '1200px', margin: '0 auto', fontFamily: '"Noto Sans KR", sans-serif' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e293b' }}>
-                    주문 관리
+                    판매 목록
                 </h1>
             </div>
 
@@ -45,13 +50,32 @@ const SellerOrderPage = () => {
                     <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b' }}>{orders.length}</div>
                 </div>
                 <div style={{ flex: 1, backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ color: '#3b82f6', fontWeight: '600', marginBottom: '0.5rem' }}>결제 완료</div>
-                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1d4ed8' }}>{orders.filter(o => o.state === 'PAYMENT_COMPLETED' || o.state === 'ORDER_COMPLETED').length}</div>
+                    <div style={{ color: '#3b82f6', fontWeight: '600', marginBottom: '0.5rem' }}>결제완료</div>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1d4ed8' }}>{orders.filter(o => o.state === 'PAID').length}</div>
+                </div>
+                <div style={{ flex: 1, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ color: '#22c55e', fontWeight: '600', marginBottom: '0.5rem' }}>구매확정</div>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#15803d' }}>{orders.filter(o => o.state === 'CONFIRMED').length}</div>
                 </div>
                 <div style={{ flex: 1, backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ color: '#ef4444', fontWeight: '600', marginBottom: '0.5rem' }}>취소/환불</div>
-                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#b91c1c' }}>{orders.filter(o => o.state === 'CANCEL_COMPLETED' || o.state === 'REFUND_COMPLETED').length}</div>
+                    <div style={{ color: '#ef4444', fontWeight: '600', marginBottom: '0.5rem' }}>주문취소</div>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#b91c1c' }}>{orders.filter(o => o.state === 'CANCELED').length}</div>
                 </div>
+            </div>
+
+            {/* Filters */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    style={{ padding: '0.4rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', fontSize: '0.9rem', color: '#475569', backgroundColor: '#fff' }}
+                >
+                    <option value="ALL">전체 주문 상태</option>
+                    <option value="PAID">결제완료 (PAID)</option>
+                    <option value="CONFIRMED">구매확정 (CONFIRMED)</option>
+                    <option value="CANCELED">주문취소 (CANCELED)</option>
+                    <option value="FAILED">결제실패 (FAILED)</option>
+                </select>
             </div>
 
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden' }}>
@@ -66,7 +90,7 @@ const SellerOrderPage = () => {
                     backgroundColor: '#f8fafc'
                 }}>
                     <div>상태</div>
-                    <div>주문상세번호 / 상품 ID </div>
+                    <div>주문상세번호</div>
                     <div>수량</div>
                     <div>총 주문 금액</div>
                     <div>주문일시</div>
@@ -82,7 +106,7 @@ const SellerOrderPage = () => {
                     </div>
                 ) : (
                     orders.map(order => (
-                        <div key={order.orderDetailId} style={{
+                        <div key={order.orderItemId} style={{
                             display: 'grid',
                             gridTemplateColumns: '1fr 2fr 1fr 1fr 1.5fr 1fr',
                             borderBottom: '1px solid #f1f5f9',
@@ -98,20 +122,22 @@ const SellerOrderPage = () => {
                             <div>
                                 <span style={{
                                     padding: '0.2rem 0.6rem',
-                                    backgroundColor: order.state.includes('CANCEL') || order.state.includes('REFUND') ? '#fef2f2' : '#e0f2fe',
-                                    color: order.state.includes('CANCEL') || order.state.includes('REFUND') ? '#ef4444' : '#0369a1',
+                                    backgroundColor: ['CANCELED', 'FAILED', 'EXPIRED'].includes(order.state) ? '#fef2f2' : ['PAID', 'CONFIRMED'].includes(order.state) ? '#e0f2fe' : '#fef3c7',
+                                    color: ['CANCELED', 'FAILED', 'EXPIRED'].includes(order.state) ? '#ef4444' : ['PAID', 'CONFIRMED'].includes(order.state) ? '#0369a1' : '#b45309',
                                     borderRadius: '12px',
                                     fontSize: '0.8rem',
                                     fontWeight: 'bold'
                                 }}>
-                                    {order.state.replace('_COMPLETED', '').replace('PAYMENT', '결제완료').replace('ORDER', '주문완료').replace('CANCEL', '취소').replace('REFUND', '환불')}
+                                    {order.state === 'PENDING' ? '주문접수' :
+                                        order.state === 'PAID' ? '결제완료' :
+                                            order.state === 'CONFIRMED' ? '구매확정' :
+                                                order.state === 'CANCELED' ? '주문취소' :
+                                                    order.state === 'FAILED' ? '결제실패' :
+                                                        order.state === 'EXPIRED' ? '기한만료' : order.state}
                                 </span>
                             </div>
                             <div>
-                                <div style={{ fontWeight: 600 }}>주문번호: {order.orderDetailId}</div>
-                                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.2rem' }}>
-                                    상품 ID: {order.productId}
-                                </div>
+                                <div style={{ fontWeight: 600 }}>{order.orderNo}</div>
                             </div>
                             <div style={{ fontWeight: '500' }}>{order.quantity} 개</div>
                             <div style={{ fontWeight: 'bold', color: '#1e293b' }}>
@@ -123,7 +149,7 @@ const SellerOrderPage = () => {
                             </div>
                             <div>
                                 <button
-                                    onClick={() => navigate(`/myshop/orders/${order.orderDetailId}`)}
+                                    onClick={() => navigate(`/myshop/orders/${order.orderNo}`, { state: { orderData: order } })}
                                     style={{
                                         padding: '0.4rem 0.8rem',
                                         backgroundColor: 'transparent',
