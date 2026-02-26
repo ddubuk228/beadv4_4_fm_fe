@@ -4,6 +4,7 @@ import { marketApi, type ProductResponse } from '../../api/market';
 import { cartApi } from '../../api/cart';
 import { Button } from '../../components/Button';
 import { FaLeaf, FaShieldAlt, FaTruck } from 'react-icons/fa';
+import { cleanProductName } from '../../utils/format';
 
 const ProductDetailPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -63,7 +64,7 @@ const ProductDetailPage = () => {
             const orderItems = [{
                 productId: product.id,
                 sellerId: (product as any).sellerId || 0,
-                productName: product.name,
+                productName: cleanProductName(product.name),
                 categoryName: product.categoryName || "",
                 price: product.minPrice,
                 weight: (product as any).weight || 0,
@@ -96,7 +97,7 @@ const ProductDetailPage = () => {
                 await tossPayments.requestPayment('카드', {
                     amount: requestTotalPrice,
                     orderId: uniqueOrderId,
-                    orderName: `${product.name} ${quantity > 1 ? `외 ${quantity - 1}건` : ''}`,
+                    orderName: `${cleanProductName(product.name)} ${quantity > 1 ? `외 ${quantity - 1}건` : ''}`,
                     successUrl: `${window.location.origin}/payment/success`,
                     failUrl: `${window.location.origin}/payment/fail`,
                 });
@@ -176,7 +177,7 @@ const ProductDetailPage = () => {
                         </div>
 
                         <h1 className="text-4xl md:text-5xl font-serif font-bold text-[var(--text-main)] mb-4 leading-tight">
-                            {product.name}
+                            {cleanProductName(product.name)}
                         </h1>
 
                         <p className="text-3xl font-bold text-[var(--primary-color)] mb-8 border-b border-[var(--border-color)] pb-8">
@@ -185,17 +186,6 @@ const ProductDetailPage = () => {
 
                         <div className="prose prose-lg text-[var(--text-muted)] mb-10 leading-relaxed max-w-none">
                             <p>{product.description}</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-8 mb-10 text-sm">
-                            <div>
-                                <span className="block text-[var(--text-muted)] mb-1">잔여 수량</span>
-                                <span className="block font-semibold text-[var(--text-main)] text-lg">재고 문의</span>
-                            </div>
-                            <div>
-                                <span className="block text-[var(--text-muted)] mb-1">무게</span>
-                                <span className="block font-semibold text-[var(--text-main)] text-lg">{(product as any).weight ?? 0}g</span>
-                            </div>
                         </div>
 
                         <div className="mt-auto space-y-8">
