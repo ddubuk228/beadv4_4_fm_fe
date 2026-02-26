@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaLeaf, FaShoppingBag, FaHeart, FaTruck } from 'react-icons/fa';
+import { FaShoppingCart, FaCommentDots } from 'react-icons/fa';
 import type { ProductResponse } from '../api/market';
 
 interface ProductCardProps {
@@ -12,16 +12,13 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
     // Extended Interface for UI Demo (Badges)
     // In a real app, these would come from the backend `product.badges`
     const isEco = product.id % 2 === 0; // Mock logic
-    const isDonation = product.id % 3 === 0; // Mock logic
     const discount = product.id % 5 === 0 ? 10 + (product.id % 3) * 5 : 0; // Mock logic
+    const mockReviews = 152 + (product.id * 17) % 800; // Mock logic 
+    const isMemberDeal = product.id % 7 === 0;
 
     return (
-        <Link
-            to={`/market/${product.id}`}
-            className="group block bg-white rounded-2xl overflow-hidden border border-transparent hover:border-[var(--primary-color)] hover:shadow-xl transition-all duration-300 h-full flex flex-col relative"
-        >
-            {/* Thumbnail Area */}
-            <div className="relative aspect-[4/5] bg-[#F9F9F7] overflow-hidden">
+        <div className="group block bg-white w-full max-w-[250px] flex flex-col relative transition-all duration-300">
+            <Link to={`/market/${product.id}`} className="block relative aspect-[4/5] bg-[#F9F9F7] overflow-hidden rounded-[8px] mb-2">
                 {product.thumbnail ? (
                     <img
                         src={product.thumbnail}
@@ -37,77 +34,82 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
 
                 {/* Fallback Image */}
                 <div className={`absolute inset-0 flex flex-col items-center justify-center text-slate-300 bg-[#F9F9F7] ${product.thumbnail ? 'hidden' : ''}`}>
-                    <FaLeaf className="text-4xl opacity-20 mb-2" />
                     <span className="text-xs font-medium uppercase tracking-widest opacity-40">No Image</span>
                 </div>
 
-                {/* Hover Action: Add to Cart */}
-                <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
-                    <button
-                        onClick={(e) => onAddToCart && onAddToCart(e, product.id)}
-                        className="bg-white text-[var(--primary-color)] font-bold py-3 px-6 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 flex items-center gap-2 hover:bg-[var(--primary-color)] hover:text-white"
-                    >
-                        <FaShoppingBag />
-                        장바구니 담기
-                    </button>
+                {/* Top Left Badges (Festa Deal, Member) */}
+                <div className="absolute top-0 left-0 flex flex-col gap-1">
+                    {isMemberDeal && (
+                        <span className="bg-[#42C8D2] px-2 py-1 text-[11px] font-bold text-white shadow-sm inline-block rounded-br-md">
+                            멤버스특가
+                        </span>
+                    )}
+                    {discount > 0 && !isMemberDeal && (
+                        <span className="bg-[#B964FF] px-2 py-[6px] text-[12px] font-bold text-white shadow-sm inline-block">
+                            {discount}% 쿠폰
+                        </span>
+                    )}
                 </div>
 
-                {/* Top Right Badges (Delivery) */}
-                <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
-                    <span className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-[10px] font-bold text-slate-600 shadow-sm border border-slate-100 flex items-center gap-1">
-                        <FaTruck className="text-[10px]" /> 당일배송
-                    </span>
-                </div>
-            </div>
+                {/* FESTA DEAL Bottom Left Badge */}
+                {isEco && (
+                    <div className="absolute bottom-2 left-2">
+                        <span className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full text-[11px] font-bold text-slate-700 shadow-sm">
+                            FESTA DEAL
+                        </span>
+                    </div>
+                )}
+            </Link>
+
+            {/* Always Visible Add To Cart Button */}
+            <button
+                onClick={(e) => onAddToCart && onAddToCart(e, product.id)}
+                className="w-full bg-white border border-slate-200 text-slate-700 font-medium py-[10px] rounded-[4px] shadow-sm mb-3 flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                style={{ fontSize: '15px' }}
+            >
+                <FaShoppingCart className="text-slate-400" />
+                담기
+            </button>
 
             {/* Content Area */}
-            <div className="p-5 flex-1 flex flex-col">
-                {/* Eco & Donation Badges - Prominent placement */}
-                <div className="flex flex-wrap gap-2 mb-3">
-                    {isEco && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-wide border border-green-100">
-                            <FaLeaf className="text-[9px]" /> CO₂ -30%
-                        </span>
-                    )}
-                    {isDonation && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-orange-50 text-orange-600 text-[10px] font-bold uppercase tracking-wide border border-orange-100">
-                            <FaHeart className="text-[9px]" /> 10% Donated
-                        </span>
-                    )}
-                </div>
-
-                {/* Seller / Brand Name */}
-                <div className="mb-1 text-xs font-bold text-slate-400 uppercase tracking-wider truncate">
-                    {product.brand || 'Eco Seller'}
-                </div>
+            <Link to={`/market/${product.id}`} className="flex flex-col flex-1 px-1 block">
+                {/* Brand Name */}
+                {product.brand && (
+                    <div className="text-[13px] text-slate-500 mb-1">
+                        [{product.brand}]
+                    </div>
+                )}
 
                 {/* Product Name */}
-                <h3 className="text-base font-medium text-slate-800 leading-snug line-clamp-2 mb-1 group-hover:text-[var(--primary-color)] transition-colors">
+                <h3 className="text-[15px] font-normal text-[#333] leading-snug line-clamp-2 mb-2 group-hover:underline decoration-slate-400 underline-offset-2">
                     {product.name}
                 </h3>
 
-                {/* Description (Optional) */}
-                <p className="text-xs text-slate-400 line-clamp-1 mb-4 font-light">
-                    {product.description || '지속 가능한 일상을 위한 선택'}
-                </p>
-
                 {/* Price Area */}
-                <div className="mt-auto flex items-end gap-2">
-                    <span className="text-lg font-bold text-slate-900">
-                        {product.minPrice?.toLocaleString() || 0}원
-                    </span>
+                <div className="flex flex-col mb-2">
                     {discount > 0 && (
-                        <>
-                            <span className="text-sm text-slate-400 line-through">
-                                {Math.round(product.minPrice * (1 + discount / 100)).toLocaleString()}
-                            </span>
-                            <span className="text-sm font-bold text-red-500 mb-[2px]">
+                        <span className="text-[13px] text-slate-400 line-through mb-[2px]">
+                            {Math.round(product.minPrice * (1 + discount / 100)).toLocaleString()}원
+                        </span>
+                    )}
+                    <div className="flex items-end gap-[6px]">
+                        {discount > 0 && (
+                            <span className="text-[16px] font-bold text-[#FA622F]">
                                 {discount}%
                             </span>
-                        </>
-                    )}
+                        )}
+                        <span className="text-[16px] font-bold text-[#333]">
+                            {product.minPrice?.toLocaleString() || 0}원~
+                        </span>
+                    </div>
                 </div>
-            </div>
-        </Link>
+
+                {/* Review Count (Bottom) */}
+                <div className="mt-auto flex items-center gap-1 text-[12px] text-[#999]">
+                    <FaCommentDots className="text-[11px]" />
+                    <span>{mockReviews > 999 ? '999+' : mockReviews}</span>
+                </div>
+            </Link>
+        </div>
     );
 };

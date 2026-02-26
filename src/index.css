@@ -199,3 +199,27 @@ h6 {
 .delay-300 {
   animation-delay: 300ms;
 }
+
+/* Custom Overlay Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Trigger thumb visibility when hovering the body or scrollable element */
+html.is-scrolling ::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(53, 79, 65, 0.45);
+}

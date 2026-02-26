@@ -26,14 +26,17 @@ export interface SellerApproveResponse {
 
 export const adminApi = {
     getSellerRequests: async () => {
+        // GET /api/v1/admin/seller-requests
         const response = await client.get<RsData<SellerRequestItem[]>>('/admin/seller-requests');
         return response.data;
     },
     approveSellerRequest: async (id: number) => {
+        // PATCH /api/v1/admin/seller-requests/{id}/approve
         const response = await client.patch<RsData<SellerApproveResponse>>(`/admin/seller-requests/${id}/approve`);
         return response.data;
     },
     rejectSellerRequest: async (id: number) => {
+        // PATCH /api/v1/admin/seller-requests/{id}/reject
         const response = await client.patch<RsData<void>>(`/admin/seller-requests/${id}/reject`);
         return response.data;
     }

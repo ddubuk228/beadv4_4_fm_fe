@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getRoleFromToken } from '../../utils/auth';
+import { getRolesFromToken } from '../../utils/auth';
 
 const AuthCallbackPage = () => {
     const navigate = useNavigate();
@@ -20,10 +20,15 @@ const AuthCallbackPage = () => {
                 // 신규 유저라면 추가 정보 입력 페이지로 이동
                 navigate('/signup/complete', { replace: true });
             } else {
-                // 기존 유저라면 메인 페이지로 이동하되, 어드민은 별도 페이지로
-                if (getRoleFromToken() === 'ROLE_ADMIN') {
-                    navigate('/admin', { replace: true });
+                // Redirect based on role
+                const userRoles = getRolesFromToken(accessToken);
+                console.log('[AuthCallback] User roles after login:', userRoles);
+
+                if (userRoles.includes('ADMIN') || userRoles.includes('ROLE_ADMIN')) {
+                    console.log('[AuthCallback] Admin detected. Redirecting to dashboard.');
+                    navigate('/admin/dashboard', { replace: true });
                 } else {
+                    console.log('[AuthCallback] Not an admin. Redirecting to homepage.');
                     navigate('/', { replace: true });
                 }
             }
