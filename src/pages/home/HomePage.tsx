@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom'; // useSearchParams 추가
 import { marketApi, type ProductResponse } from '../../api/market';
 import { cartApi } from '../../api/cart';
 import { ProductCard } from '../../components/ProductCard';
@@ -7,6 +7,9 @@ import { Button } from '../../components/Button';
 
 const HomePage = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();           // URL 파라미터 읽기
+    const keyword = searchParams.get('keyword');        // 'keyword' 값 추출
+
     const [products, setProducts] = useState<ProductResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -16,8 +19,14 @@ const HomePage = () => {
         setIsLoggedIn(!!token && token !== 'undefined' && token !== 'null');
 
         const fetchProducts = async () => {
+            setLoading(true);
             try {
-                const data = await marketApi.getProducts({ page: 0, size: 10 }); // Fetch top 10 items
+                // keyword가 있으면 해당 키워드로 검색, 없으면 기본 추천(top 10) 상품 가져오기
+                const data = await marketApi.getProducts({ 
+                    page: 0, 
+                    size: keyword ? 20 : 10, 
+                    keyword: keyword || undefined 
+                });
                 setProducts(data.data.content);
             } catch (error) {
                 console.error("Failed to fetch home products", error);
@@ -26,18 +35,13 @@ const HomePage = () => {
             }
         };
         fetchProducts();
-    }, []);
-
-    // Removed duplicate isLoggedIn declaration
+    }, [keyword]); // keyword가 변경될 때마다 API 재요청
 
     const addToCart = async (e: React.MouseEvent, productId: number) => {
-        e.preventDefault(); // Prevent navigation
+        e.preventDefault();
         try {
             await cartApi.addToCart(productId, 1);
-            // Optional: Toast notification here
             if (window.confirm('장바구니에 담겼습니다. 장바구니로 이동하시겠습니까?')) {
-                // Use window.location as quick nav since hook might need wrapping
-                // or just ignore if user says canceled.
                 window.location.href = '/cart';
             }
         } catch (err: any) {
@@ -51,15 +55,44 @@ const HomePage = () => {
         }
     };
 
+    // 🌟 1. 검색어가 있을 경우: 검색 결과 화면 렌더링
+    if (keyword) {
+        return (
+            <div className="pb-0 bg-[var(--background-color)] min-h-[80vh] pt-10">
+                <div className="container mx-auto px-4 max-w-[1050px]">
+                    <h2 className="text-[24px] font-bold text-[#333] mb-8">
+                        <span className="text-[var(--primary-color)]">'{keyword}'</span> 검색 결과
+                    </h2>
+                    
+                    {loading ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-[18px]">
+                            {[...Array(8)].map((_, i) => (
+                                <div key={i} className="aspect-[4/5] bg-slate-200 rounded-[8px] animate-pulse"></div>
+                            ))}
+                        </div>
+                    ) : products.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-12 gap-x-[18px]">
+                            {products.map(product => (
+                                <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="py-32 text-center text-slate-500 text-lg">
+                            검색된 상품이 없습니다. 다른 키워드로 검색해보세요!
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // 🌟 2. 검색어가 없을 경우: 기존 메인 화면 렌더링
     return (
         <div className="pb-0 bg-[var(--background-color)]">
             {/* 1. Hero Banner */}
             <div className="relative min-h-[35vh] xl:min-h-[45vh] w-full flex flex-col justify-center items-center text-white text-center mb-16 bg-cover bg-center pb-8 pt-6"
                 style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1470058869958-2a77ade41c02?q=80&w=2070&auto=format&fit=crop)' }}>
-
-                {/* Overlay with gradient for better readability */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-[var(--background-color)]"></div>
-
                 <div className="relative z-10 w-full max-w-5xl px-6 transform -translate-y-4">
                     <span className="inline-block py-1 px-3 border border-white/30 rounded-full text-sm font-medium tracking-widest mb-6 backdrop-blur-sm">PREMIUM ECO LIFESTYLE</span>
                     <h1 className="text-7xl md:text-9xl font-serif mb-5 !text-white drop-shadow-2xl font-bold tracking-tight">Mossy</h1>
@@ -87,13 +120,10 @@ const HomePage = () => {
                                 ))}
                             </div>
                         ) : (
-                            // Horizontal scroll container to mimic Kurly's slider
                             <div className="flex gap-[18px] overflow-x-auto pb-6 snap-x hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                                 <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; }`}</style>
-                                {/* We show first 5 products here for the slider */}
                                 {products.slice(0, 5).map((product, idx) => (
                                     <div key={product.id} className="min-w-[250px] snap-start relative">
-                                        {/* Optional Rank Number Badge over image */}
                                         <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-[var(--primary-color)] text-white font-bold flex items-center justify-center shadow-lg z-10 text-lg">
                                             {idx + 1}
                                         </div>
@@ -105,7 +135,7 @@ const HomePage = () => {
                     </div>
                 </div>
 
-                {/* 3. New Arrivals -> Category Best (Per Reference) */}
+                {/* 3. New Arrivals -> Category Best */}
                 <div className="mb-24">
                     <div className="text-center mb-10 flex flex-col items-center">
                         <h2 className="text-[28px] font-bold text-[#333] flex items-center gap-1 cursor-pointer group">
@@ -122,7 +152,6 @@ const HomePage = () => {
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-y-12 gap-x-[18px]">
-                            {/* We show next 4 products here for the grid */}
                             {products.slice(5, 9).map(product => (
                                 <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
                             ))}
@@ -157,7 +186,8 @@ const HomePage = () => {
                         {['#텀블러', '#친환경주방', '#업사이클', '#대나무칫솔', '#플라스틱프리'].map(tag => (
                             <span key={tag}
                                 className="px-6 py-3 rounded-full bg-white border border-[var(--border-color)] text-[var(--text-muted)] cursor-pointer transition-all hover:border-[var(--primary-color)] hover:text-[var(--primary-color)] hover:shadow-md text-sm font-medium"
-                                onClick={() => navigate(`/market?search=${encodeURIComponent(tag.replace('#', ''))}`)}
+                                // 파라미터 이름을 search에서 keyword로 통일
+                                onClick={() => navigate(`/?keyword=${encodeURIComponent(tag.replace('#', ''))}`)}
                             >
                                 {tag}
                             </span>
@@ -165,7 +195,6 @@ const HomePage = () => {
                     </div>
                 </div>
             </div>
-
         </div>
     );
 };

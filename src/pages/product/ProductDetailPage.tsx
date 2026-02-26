@@ -405,7 +405,7 @@ const ProductDetailPage = () => {
                     {product.mainProduct && (
                         <ProductReviews productId={product.mainProduct.productId} />
                     )}
-                </div>
+                </div>ㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴ
             </div>
         </div>
     );
