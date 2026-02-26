@@ -8,7 +8,22 @@ const client = axios.create({
     withCredentials: true,
 });
 
-// Request interceptor to add token
+// 간단한 JWT 디코드 헬퍼 함수
+const parseJwt = (token: string) => {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        return null;
+    }
+};
+
+// Request interceptor to add token and custom headers
 client.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('accessToken');
@@ -16,6 +31,17 @@ client.interceptors.request.use(
 
         if (token && !isAuthRequest) {
             config.headers['Authorization'] = `Bearer ${token}`;
+
+            // JWT 토큰을 파싱하여 백엔드가 요구하는 커스텀 헤더(X-User-Id, X-Seller-Id) 주입
+            const decodedPayload = parseJwt(token);
+            if (decodedPayload) {
+                if (decodedPayload.sub) {
+                    config.headers['X-User-Id'] = decodedPayload.sub;
+                }
+                if (decodedPayload.seller_id) {
+                    config.headers['X-Seller-Id'] = decodedPayload.seller_id;
+                }
+            }
         }
 
         // If data is FormData, let the browser set the Content-Type with boundary

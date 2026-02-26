@@ -10,6 +10,7 @@ import SellerRequestPage from './pages/member/seller/SellerRequestPage';
 import CartPage from './pages/cart/CartPage';
 import MyPage from './pages/member/user/MyPage';
 import OrdersPage from './pages/order/OrdersPage';
+import OrderDetailPage from './pages/order/OrderDetailPage';
 import PaymentSuccessPage from './pages/payment/PaymentSuccessPage';
 import PaymentFailPage from './pages/payment/PaymentFailPage';
 
@@ -36,6 +37,7 @@ function App() {
         <Route path="profile/edit" element={<ProfileEditPage />} />
         <Route path="admin" element={<AdminPage />} />
         <Route path="orders" element={<OrdersPage />} />
+        <Route path="orders/:id" element={<OrderDetailPage />} />
         <Route path="wallet" element={<WalletPage />} />
         <Route path="seller-request" element={<SellerRequestPage />} />
         <Route path="payment/success" element={<PaymentSuccessPage />} />
