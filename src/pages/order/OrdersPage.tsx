@@ -17,14 +17,21 @@ const OrdersPage = () => {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                // Backend returns a Page object directly
-                const pageData = await orderApi.getMyOrders();
+                // 백엔드는 RsData<Page<OrderListResponse>> 를 반환
+                const res = await orderApi.getMyOrders();
+                console.log('Buyer Orders API Response:', res); // 디버깅
 
-                // Spring Data Page object structure: { content: [...], totalElements: ..., ... }
-                if (pageData && Array.isArray(pageData.content)) {
-                    setOrders(pageData.content);
+                // axios 응답(res) -> RsData(res.data) -> Page(res.data.data) -> 배열(res.data.data.content)
+                // api/order.ts의 리턴이 이미 res.data(RsData)일 수 있음
+                if (res?.data?.content) {
+                    setOrders(res.data.content);
+                } else if (res?.data?.data?.content) {
+                    setOrders(res.data.data.content);
+                } else if (Array.isArray(res?.data)) {
+                    setOrders(res.data);
+                } else if (Array.isArray(res?.content)) {
+                    setOrders(res.content);
                 } else {
-                    // Fallback or empty
                     setOrders([]);
                 }
             } catch (err: any) {
@@ -94,19 +101,15 @@ const OrdersPage = () => {
     }
 
     return (
-        <div className="container" style={{ maxWidth: '1024px', margin: '0 auto', paddingTop: '140px', paddingBottom: '4rem' }}>
+        <div className="container" style={{ maxWidth: '800px', margin: '2rem auto', marginTop: '120px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary-color)' }}>주문 내역</h1>
-                <button onClick={() => navigate('/mypage')} className="btn btn-outline" style={{ borderColor: '#e2e8f0', color: '#64748b' }}>
-                    마이페이지
-                </button>
+                <button onClick={() => navigate('/mypage')} className="btn btn-outline">마이페이지</button>
             </div>
 
             {orders.length === 0 ? (
-                <div className="card shadow-md" style={{ padding: '4rem 2rem', textAlign: 'center', backgroundColor: '#fff', borderRadius: '16px' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📦</div>
-                    <p style={{ fontSize: '1.1rem', color: '#64748b' }}>아직 주문 내역이 없습니다.</p>
-                    <button onClick={() => navigate('/')} className="btn btn-primary" style={{ marginTop: '1.5rem', padding: '0.75rem 2rem' }}>쇼핑하러 가기</button>
+                <div className="card" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+                    <p>주문 내역이 없습니다.</p>
                 </div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -115,24 +118,11 @@ const OrdersPage = () => {
                         const details = detailsCache[order.orderId];
 
                         return (
-                            <div
-                                key={order.orderId}
-                                className="card group"
-                                style={{
-                                    padding: '0',
-                                    overflow: 'hidden',
-                                    border: isExpanded ? '1px solid var(--primary-color)' : '1px solid #e2e8f0',
-                                    transition: 'all 0.3s ease',
-                                    borderRadius: '16px',
-                                    backgroundColor: '#fff',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
-                                }}
-                            >
+                            <div key={order.orderId} className="card" style={{ padding: '0', overflow: 'hidden', border: isExpanded ? '1px solid var(--primary-color)' : '1px solid #e2e8f0', transition: 'all 0.2s' }}>
                                 {/* Order Summary (Clickable) */}
                                 <div
                                     onClick={() => toggleOrder(order.orderId, order.orderNo)}
-                                    className="hover:bg-gray-50 transition-colors duration-200"
-                                    style={{ padding: '1.75rem', cursor: 'pointer', backgroundColor: isExpanded ? '#f8fafc' : 'white' }}
+                                    style={{ padding: '1.5rem', cursor: 'pointer', backgroundColor: isExpanded ? '#f8fafc' : 'white' }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                                         <div>
