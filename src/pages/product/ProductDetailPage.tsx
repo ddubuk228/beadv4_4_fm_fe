@@ -196,7 +196,18 @@ const ProductDetailPage = () => {
     const currentPrice = selectedItem ? selectedItem.totalPrice : (mainProduct?.basePrice || 0);
     const currentWeight = selectedItem ? selectedItem.weight : 0;
     const currentQuantity = selectedItem ? selectedItem.quantity : 0;
-    const mainImage = catalog.images && catalog.images.length > 0 ? catalog.images[0] : null;
+    let parsedImages: string[] = [];
+if (typeof catalog.images === 'string') {
+    try {
+        parsedImages = JSON.parse(catalog.images);
+    } catch (e) {
+        console.error("이미지 데이터 파싱 오류:", e);
+    }
+} else if (Array.isArray(catalog.images)) {
+    parsedImages = catalog.images;
+}
+
+const mainImage = parsedImages.length > 0 ? parsedImages[0] : null;
     const productStatus = !isAvailable ? 'SOLD_OUT' : (selectedItem ? selectedItem.status : 'ON_SALE');
 
     return (
