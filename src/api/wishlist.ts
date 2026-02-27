@@ -5,7 +5,7 @@ export interface WishlistResponse {
     productId: number;
     productName: string;
     categoryName: string;
-    price: number;
+    totalPrice: number;
     thumbnailUrl: string;
 }
 
