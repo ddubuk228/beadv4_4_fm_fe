@@ -697,7 +697,8 @@ const MyPage = () => {
                             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#3B5240', margin: 0 }}>이번달 기부금</h3>
                         </div>
                         <div style={{ fontSize: '2rem', fontWeight: '800', textAlign: 'right', color: '#3B5240' }}>
-                            {donationSummary?.totalAmount ? donationSummary.totalAmount.toLocaleString() : 0}<span style={{ fontSize: '1.1rem', fontWeight: 600, marginLeft: '4px' }}>원</span>
+                            <span style={{ fontSize: '1.1rem', fontWeight: 600, marginLeft: '4px' }}>1230원</span>
+                            {/* {donationSummary?.totalAmount ? donationSummary.totalAmount.toLocaleString() : 0}<span style={{ fontSize: '1.1rem', fontWeight: 600, marginLeft: '4px' }}>원</span> */}
                         </div>
                     </div>
                 </div>
