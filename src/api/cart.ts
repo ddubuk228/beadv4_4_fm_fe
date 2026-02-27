@@ -6,7 +6,7 @@ export interface CartItem {
     productId: number;
     sellerId: number;
     productName: string;
-    price: number; // matched with API
+    totalPrice: number; // matched with API
     quantity: number;
     thumbnailUrl: string | null; // matched with API
     categoryName?: string;
