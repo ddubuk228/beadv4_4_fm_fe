@@ -40,35 +40,36 @@ const ProductDetailPage = () => {
         fetchProduct();
     }, [id]);
 
-    // 선택된 옵션 조합 문자열 생성 (예: "비스포크 스카이블루 / 기본 설치")
-    const selectedOptionString = useMemo(() => {
-        if (!product?.mainProduct?.optionGroups) return "";
-        return product.mainProduct.optionGroups
-            .map(group => selectedOptions[group.name])
-            .filter(Boolean)
-            .join(' / ');
-    }, [product, selectedOptions]);
-
-    // 선택된 옵션에 일치하는 상품 아이템 찾기
+    // 선택된 옵션에 일치하는 상품 아이템 찾기 (개선됨)
     const selectedItem = useMemo<ProductItem | null>(() => {
         if (!product?.mainProduct?.productItems) return null;
 
         // 옵션 그룹이 아예 없는 상품 처리
         if (!product.mainProduct.optionGroups || product.mainProduct.optionGroups.length === 0) {
             if (product.mainProduct.productItems.length === 1) {
-                // 단일 아이템이면 자동 선택
                 return product.mainProduct.productItems[0] || null;
             } else if (selectedOptions['__itemId']) {
-                // 아이템이 여러 개면 ID로 검색해서 선택
                 return product.mainProduct.productItems.find(item => item.productItemsId.toString() === selectedOptions['__itemId']) || null;
             }
             return null;
         }
 
-        return product.mainProduct.productItems.find(
-            item => item.optionCombination === selectedOptionString
-        ) || null;
-    }, [product, selectedOptionString, selectedOptions]);
+        // 선택된 모든 옵션 값이 조합에 포함되어 있는지 확인 (띄어쓰기나 구분자가 달라도 매칭되도록 유연하게 처리)
+        return product.mainProduct.productItems.find(item => {
+            if (!item.optionCombination) return false;
+            
+            // 구분자( / , - ) 기준으로 분할 및 공백 제거
+            const itemOptions = item.optionCombination.split(/[\/,\-]/).map(s => s.trim());
+            
+            return product.mainProduct!.optionGroups.every(group => {
+                const selectedVal = selectedOptions[group.name];
+                if (!selectedVal) return false;
+                
+                // 백엔드 문자열에 선택한 값이 정확히 있거나 포함되어 있는지 검사
+                return itemOptions.includes(selectedVal.trim()) || item.optionCombination.includes(selectedVal);
+            });
+        }) || null;
+    }, [product, selectedOptions]);
 
     // 모든 옵션이 선택되었는지 확인
     const isAllOptionsSelected = useMemo(() => {
@@ -76,7 +77,7 @@ const ProductDetailPage = () => {
 
         if (!product.mainProduct.optionGroups || product.mainProduct.optionGroups.length === 0) {
             if (product.mainProduct.productItems.length === 1) return true;
-            return !!selectedOptions['__itemId']; // 옵션 없는 다수 품목인 경우 선택했는지 확인
+            return !!selectedOptions['__itemId']; 
         }
 
         return product.mainProduct.optionGroups.every(group => !!selectedOptions[group.name]);
@@ -98,14 +99,12 @@ const ProductDetailPage = () => {
 
         try {
             if (!product.mainProduct) return;
-            // 장바구니 API가 productId를 받을지 productItemsId를 받을지에 따라 인자 조정 필요
             await cartApi.addToCart(product.mainProduct.productId, quantity);
             if (window.confirm('장바구니에 담겼습니다. 장바구니로 이동하시겠습니까?')) {
                 navigate('/cart');
             }
         } catch (err: any) {
             console.error("Failed to add to cart", err);
-
             if (err.message === "로그인이 필요합니다." || err.response?.status === 401) {
                 alert("로그인이 필요합니다.");
                 navigate('/login');
@@ -114,6 +113,41 @@ const ProductDetailPage = () => {
             }
         }
     };
+
+    // 이미지 파싱 로직 분리 (주문 시에도 사용하기 위해 렌더링 전으로 이동)
+    const parsedImages = useMemo(() => {
+        if (!product) return [];
+        const images = product.catalog.images;
+        if (typeof images === 'string') {
+            try {
+                return JSON.parse(images);
+            } catch (e) {
+                console.error("이미지 데이터 파싱 오류:", e);
+                return [];
+            }
+        }
+        if (Array.isArray(images)) return images;
+        return [];
+    }, [product]);
+
+    // mainImage 문자열(URL) 안전하게 추출
+    const mainImage = useMemo(() => {
+        if (parsedImages.length === 0) return null;
+        
+        // 1. isThumbnail이 true인 객체 찾기
+        const thumb = parsedImages.find((img: any) => img && typeof img === 'object' && img.isThumbnail);
+        if (thumb && thumb.imageUrl) return thumb.imageUrl;
+        
+        // 2. 그냥 첫 번째 객체의 imageUrl 사용
+        if (parsedImages[0] && typeof parsedImages[0] === 'object' && parsedImages[0].imageUrl) {
+            return parsedImages[0].imageUrl;
+        }
+        
+        // 3. 문자열 배열인 경우
+        if (typeof parsedImages[0] === 'string') return parsedImages[0];
+        
+        return null;
+    }, [parsedImages]);
 
     const handleDirectOrder = async (type: 'TOSS' | 'CASH') => {
         if (!product || !product.mainProduct) return;
@@ -126,7 +160,6 @@ const ProductDetailPage = () => {
 
         try {
             const requestTotalPrice = selectedItem.totalPrice * quantity;
-            const thumbnailUrl = product.catalog.images?.[0] || "";
 
             const orderItems = [{
                 productId: product.mainProduct.productId,
@@ -136,7 +169,7 @@ const ProductDetailPage = () => {
                 categoryName: product.catalog?.categoryName || "",
                 price: selectedItem.totalPrice,
                 weight: selectedItem.weight,
-                thumbnailUrl: thumbnailUrl,
+                thumbnailUrl: mainImage || "", // 해결: 객체 대신 URL 문자열 전송
                 quantity: quantity
             }];
 
@@ -196,18 +229,6 @@ const ProductDetailPage = () => {
     const currentPrice = selectedItem ? selectedItem.totalPrice : (mainProduct?.basePrice || 0);
     const currentWeight = selectedItem ? selectedItem.weight : 0;
     const currentQuantity = selectedItem ? selectedItem.quantity : 0;
-    let parsedImages: string[] = [];
-if (typeof catalog.images === 'string') {
-    try {
-        parsedImages = JSON.parse(catalog.images);
-    } catch (e) {
-        console.error("이미지 데이터 파싱 오류:", e);
-    }
-} else if (Array.isArray(catalog.images)) {
-    parsedImages = catalog.images;
-}
-
-const mainImage = parsedImages.length > 0 ? parsedImages[0] : null;
     const productStatus = !isAvailable ? 'SOLD_OUT' : (selectedItem ? selectedItem.status : 'ON_SALE');
 
     return (
@@ -411,12 +432,11 @@ const mainImage = parsedImages.length > 0 ? parsedImages[0] : null;
                 </div>
 
                 {/* Reviews Section */}
-                {/* Reviews Section */}
                 <div className="mt-16">
                     {product.mainProduct && (
                         <ProductReviews productId={product.mainProduct.productId} />
                     )}
-                </div>ㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴㄴ
+                </div>
             </div>
         </div>
     );
