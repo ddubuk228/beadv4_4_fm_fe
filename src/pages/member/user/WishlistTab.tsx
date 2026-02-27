@@ -115,7 +115,7 @@ export const WishlistTab = () => {
                             <div style={{ padding: '1rem' }}>
                                 <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '0.25rem' }}>{item.categoryName}</div>
                                 <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '0.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.productName}</div>
-                                <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>{item.price.toLocaleString()}원</div>
+                                <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>{item.totalPrice.toLocaleString()}원</div>
                             </div>
                         </div>
                     ))}
