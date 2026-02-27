@@ -40,7 +40,7 @@ const ProductDetailPage = () => {
         fetchProduct();
     }, [id]);
 
-    // 선택된 옵션에 일치하는 상품 아이템 찾기 (개선됨)
+    // 선택된 옵션에 일치하는 상품 아이템 찾기 (개선됨: 공백 및 대소문자 무시)
     const selectedItem = useMemo<ProductItem | null>(() => {
         if (!product?.mainProduct?.productItems) return null;
 
@@ -54,19 +54,22 @@ const ProductDetailPage = () => {
             return null;
         }
 
-        // 선택된 모든 옵션 값이 조합에 포함되어 있는지 확인 (띄어쓰기나 구분자가 달라도 매칭되도록 유연하게 처리)
+        // 선택된 모든 옵션 값이 조합에 포함되어 있는지 확인
         return product.mainProduct.productItems.find(item => {
             if (!item.optionCombination) return false;
             
-            // 구분자( / , - ) 기준으로 분할 및 공백 제거
-            const itemOptions = item.optionCombination.split(/[\/,\-]/).map(s => s.trim());
+            // 비교를 위해 띄어쓰기 전부 제거 및 소문자 변환 (예: "빨강 / XL" -> "빨강/xl")
+            const normalizedCombination = item.optionCombination.replace(/\s+/g, '').toLowerCase();
             
             return product.mainProduct!.optionGroups.every(group => {
                 const selectedVal = selectedOptions[group.name];
                 if (!selectedVal) return false;
                 
-                // 백엔드 문자열에 선택한 값이 정확히 있거나 포함되어 있는지 검사
-                return itemOptions.includes(selectedVal.trim()) || item.optionCombination.includes(selectedVal);
+                // 선택한 값도 띄어쓰기 전부 제거 및 소문자 변환
+                const normalizedSelectedVal = selectedVal.replace(/\s+/g, '').toLowerCase();
+                
+                // 조합 문자열 안에 해당 옵션 값이 포함되어 있는지 확인
+                return normalizedCombination.includes(normalizedSelectedVal);
             });
         }) || null;
     }, [product, selectedOptions]);
@@ -92,6 +95,7 @@ const ProductDetailPage = () => {
 
     const handleAddToCart = async () => {
         if (!product) return;
+        
         if (!isAllOptionsSelected || !selectedItem) {
             alert('모든 옵션을 선택해주세요.');
             return;
@@ -169,7 +173,7 @@ const ProductDetailPage = () => {
                 categoryName: product.catalog?.categoryName || "",
                 price: selectedItem.totalPrice,
                 weight: selectedItem.weight,
-                thumbnailUrl: mainImage || "", // 해결: 객체 대신 URL 문자열 전송
+                thumbnailUrl: mainImage || "", 
                 quantity: quantity
             }];
 
@@ -303,6 +307,7 @@ const ProductDetailPage = () => {
                         <div className="prose prose-lg text-[var(--text-muted)] mb-8 leading-relaxed max-w-none">
                             <p>{catalog?.description}</p>
                         </div>
+                        
                         {/* Options Selector */}
                         {mainProduct?.optionGroups && mainProduct.optionGroups.length > 0 ? (
                             <div className="space-y-4 mb-8 bg-gray-50 p-6 rounded-2xl border border-gray-100">
@@ -417,6 +422,11 @@ const ProductDetailPage = () => {
                                         {!isAllOptionsSelected && (
                                             <p className="text-sm text-red-500 text-center font-medium">
                                                 상품의 옵션을 먼저 선택해주세요.
+                                            </p>
+                                        )}
+                                        {isAllOptionsSelected && !selectedItem && (
+                                            <p className="text-sm text-red-500 text-center font-medium">
+                                                선택하신 옵션 조합에 해당하는 상품이 없습니다. 다른 옵션을 선택해주세요.
                                             </p>
                                         )}
                                     </div>
