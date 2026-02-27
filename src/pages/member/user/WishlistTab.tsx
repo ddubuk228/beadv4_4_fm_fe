@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { wishlistApi, type WishlistResponse } from '../../../api/wishlist';
+import { wishlistApi } from '../../../api/wishlist';
 
 export const WishlistTab = () => {
     const navigate = useNavigate();
@@ -121,7 +121,6 @@ export const WishlistTab = () => {
                                 <div style={{ padding: '1rem' }}>
                                     <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '0.25rem' }}>{item.categoryName}</div>
                                     <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '0.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.productName}</div>
-                                    {/* 수정된 부분: 안전한 숫자 파싱 및 출력 */}
                                     <div style={{ fontWeight: 700, color: 'var(--primary-color)' }}>
                                         {Number(item.totalPrice || item.price || 0).toLocaleString()}원
                                     </div>
