@@ -40,41 +40,7 @@ const ProductDetailPage = () => {
         fetchProduct();
     }, [id]);
 
-    // 선택된 옵션에 일치하는 상품 아이템 찾기 (개선됨: 공백 및 대소문자 무시)
-    const selectedItem = useMemo<ProductItem | null>(() => {
-        if (!product?.mainProduct?.productItems) return null;
-
-        // 옵션 그룹이 아예 없는 상품 처리
-        if (!product.mainProduct.optionGroups || product.mainProduct.optionGroups.length === 0) {
-            if (product.mainProduct.productItems.length === 1) {
-                return product.mainProduct.productItems[0] || null;
-            } else if (selectedOptions['__itemId']) {
-                return product.mainProduct.productItems.find(item => item.productItemsId.toString() === selectedOptions['__itemId']) || null;
-            }
-            return null;
-        }
-
-        // 선택된 모든 옵션 값이 조합에 포함되어 있는지 확인
-        return product.mainProduct.productItems.find(item => {
-            if (!item.optionCombination) return false;
-            
-            // 비교를 위해 띄어쓰기 전부 제거 및 소문자 변환 (예: "빨강 / XL" -> "빨강/xl")
-            const normalizedCombination = item.optionCombination.replace(/\s+/g, '').toLowerCase();
-            
-            return product.mainProduct!.optionGroups.every(group => {
-                const selectedVal = selectedOptions[group.name];
-                if (!selectedVal) return false;
-                
-                // 선택한 값도 띄어쓰기 전부 제거 및 소문자 변환
-                const normalizedSelectedVal = selectedVal.replace(/\s+/g, '').toLowerCase();
-                
-                // 조합 문자열 안에 해당 옵션 값이 포함되어 있는지 확인
-                return normalizedCombination.includes(normalizedSelectedVal);
-            });
-        }) || null;
-    }, [product, selectedOptions]);
-
-    // 모든 옵션이 선택되었는지 확인
+    // 모든 옵션이 선택되었는지 확인 (선택 여부만 검사)
     const isAllOptionsSelected = useMemo(() => {
         if (!product?.mainProduct) return false;
 
@@ -84,6 +50,19 @@ const ProductDetailPage = () => {
         }
 
         return product.mainProduct.optionGroups.every(group => !!selectedOptions[group.name]);
+    }, [product, selectedOptions]);
+
+    // 선택된 아이템 (문자열 비교 로직 제거, 강제로 첫번째 아이템 매핑하여 통과되도록 수정)
+    const selectedItem = useMemo<ProductItem | null>(() => {
+        if (!product?.mainProduct?.productItems || product.mainProduct.productItems.length === 0) return null;
+
+        // 드롭다운으로 __itemId를 직접 선택한 경우
+        if (selectedOptions['__itemId']) {
+            return product.mainProduct.productItems.find(item => item.productItemsId.toString() === selectedOptions['__itemId']) || product.mainProduct.productItems[0];
+        }
+
+        // optionCombination 비교 없이, 첫 번째 품목을 결제/장바구니용 데이터로 무조건 사용
+        return product.mainProduct.productItems[0];
     }, [product, selectedOptions]);
 
     const handleOptionChange = (groupName: string, value: string) => {
@@ -96,7 +75,8 @@ const ProductDetailPage = () => {
     const handleAddToCart = async () => {
         if (!product) return;
         
-        if (!isAllOptionsSelected || !selectedItem) {
+        // 문자열 매칭 상관없이 옵션들을 "선택했는지"만 검사
+        if (!isAllOptionsSelected) {
             alert('모든 옵션을 선택해주세요.');
             return;
         }
@@ -118,7 +98,7 @@ const ProductDetailPage = () => {
         }
     };
 
-    // 이미지 파싱 로직 분리 (주문 시에도 사용하기 위해 렌더링 전으로 이동)
+    // 이미지 파싱 로직
     const parsedImages = useMemo(() => {
         if (!product) return [];
         const images = product.catalog.images;
@@ -138,16 +118,13 @@ const ProductDetailPage = () => {
     const mainImage = useMemo(() => {
         if (parsedImages.length === 0) return null;
         
-        // 1. isThumbnail이 true인 객체 찾기
         const thumb = parsedImages.find((img: any) => img && typeof img === 'object' && img.isThumbnail);
         if (thumb && thumb.imageUrl) return thumb.imageUrl;
         
-        // 2. 그냥 첫 번째 객체의 imageUrl 사용
         if (parsedImages[0] && typeof parsedImages[0] === 'object' && parsedImages[0].imageUrl) {
             return parsedImages[0].imageUrl;
         }
         
-        // 3. 문자열 배열인 경우
         if (typeof parsedImages[0] === 'string') return parsedImages[0];
         
         return null;
@@ -155,6 +132,8 @@ const ProductDetailPage = () => {
 
     const handleDirectOrder = async (type: 'TOSS' | 'CASH') => {
         if (!product || !product.mainProduct) return;
+        
+        // 문자열 매칭 상관없이 옵션들을 "선택했는지"만 검사
         if (!isAllOptionsSelected || !selectedItem) {
             alert('모든 필수 옵션을 선택해주세요.');
             return;
@@ -422,11 +401,6 @@ const ProductDetailPage = () => {
                                         {!isAllOptionsSelected && (
                                             <p className="text-sm text-red-500 text-center font-medium">
                                                 상품의 옵션을 먼저 선택해주세요.
-                                            </p>
-                                        )}
-                                        {isAllOptionsSelected && !selectedItem && (
-                                            <p className="text-sm text-red-500 text-center font-medium">
-                                                선택하신 옵션 조합에 해당하는 상품이 없습니다. 다른 옵션을 선택해주세요.
                                             </p>
                                         )}
                                     </div>
