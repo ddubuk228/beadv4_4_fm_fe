@@ -213,7 +213,7 @@ const CartPage = () => {
                                         <div className="text-xs font-bold text-[var(--accent-color)] uppercase tracking-wider mb-2">{item.categoryName || 'Natural Product'}</div>
                                         <h3 className="text-2xl font-serif font-medium text-[var(--text-main)] mb-2 group-hover:text-[var(--primary-color)] transition-colors">{item.productName}</h3>
                                         <p className="text-xl font-bold text-[var(--primary-color)]">
-                                            {(item.price ?? 0).toLocaleString()} 원
+                                            {(item.totalPrice ?? 0).toLocaleString()} 원
                                         </p>
                                     </div>
 
